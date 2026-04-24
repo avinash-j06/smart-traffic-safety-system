@@ -247,11 +247,12 @@ Safety Score = 100 - (traffic_level × 15) - (accident_severity × 10) - (crime_
 
 ## 👨‍💻 Author
 
-**Student Name:** *(Your Name)*
-**College:** *(Your College Name)*
-**Branch:** *(Your Branch — e.g. Computer Science Engineering)*
-**Year:** *(e.g. Final Year — 2025–26)*
-**Guide:** *(Your Project Guide's Name)*
+**Student Name:** *Avinash Jaiswal*
+**Student Name:** *Birju Ram Sahu*
+**College:** *GEC Raipur*
+**Branch:** *(Computer Science Engineering)*
+**Year:** *(Pre-Final Year — 2025–26)*
+**Guide:** *Mrs.Anjum Khan*
 
 ---
 
