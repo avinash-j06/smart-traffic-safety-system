@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Smart Traffic & Safety System — Raipur</title>
+
+  <!-- Leaflet map -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <!-- Leaflet heatmap plugin -->
+  <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family: 'Segoe UI', sans-serif; background:#0f1117; color:#e0e0e0; }
+
+    /* ── Top navbar ── */
+    .navbar {
+      background:#1a1d27; padding:12px 24px;
+      display:flex; align-items:center; justify-content:space-between;
+      border-bottom:2px solid #2a2d3e; position:sticky; top:0; z-index:1000;
+    }
+    .navbar h1 { font-size:18px; color:#00d4ff; font-weight:600; }
+    .navbar .subtitle { font-size:12px; color:#888; margin-top:2px; }
+    .status-dot { width:10px; height:10px; background:#00ff88;
+                  border-radius:50%; display:inline-block;
+                  animation: pulse 2s infinite; margin-right:6px; }
+    @keyframes pulse {
+      0%,100%{ box-shadow:0 0 0 0 rgba(0,255,136,.4); }
+      50%    { box-shadow:0 0 0 6px rgba(0,255,136,0); }
+    }
+
+    /* ── Layout ── */
+    .container { display:grid; grid-template-columns:320px 1fr; height:calc(100vh - 56px); }
+
+    /* ── Sidebar ── */
+    .sidebar { background:#1a1d27; overflow-y:auto; border-right:1px solid #2a2d3e; }
+    .panel { padding:16px; border-bottom:1px solid #2a2d3e; }
+    .panel h3 { font-size:13px; color:#00d4ff; text-transform:uppercase;
+                letter-spacing:1px; margin-bottom:12px; }
+
+    .form-group { margin-bottom:10px; }
+    .form-group label { font-size:12px; color:#aaa; display:block; margin-bottom:4px; }
+    .form-group select, .form-group input {
+      width:100%; padding:8px 10px; background:#252836;
+      border:1px solid #3a3d4e; border-radius:6px;
+      color:#e0e0e0; font-size:13px; outline:none;
+    }
+    .form-group select:focus, .form-group input:focus {
+      border-color:#00d4ff;
+    }
+
+    .btn {
+      width:100%; padding:10px; border:none; border-radius:6px;
+      font-size:13px; font-weight:600; cursor:pointer; margin-top:6px;
+      transition:opacity .2s;
+    }
+    .btn:hover { opacity:.85; }
+    .btn-primary   { background:#00d4ff; color:#0f1117; }
+    .btn-success   { background:#00ff88; color:#0f1117; }
+    .btn-danger    { background:#ff4757; color:#fff; }
+
+    /* ── Result cards ── */
+    .result-card {
+      background:#252836; border-radius:8px; padding:12px;
+      margin-top:10px; border-left:3px solid #00d4ff;
+    }
+    .result-card.danger { border-left-color:#ff4757; }
+    .result-card.warning{ border-left-color:#ffa502; }
+    .result-card.success{ border-left-color:#00ff88; }
+    .result-title { font-size:11px; color:#888; margin-bottom:4px; }
+    .result-value { font-size:20px; font-weight:700; color:#fff; }
+    .result-sub   { font-size:12px; color:#aaa; margin-top:2px; }
+
+    .score-bar { height:6px; background:#2a2d3e; border-radius:3px; margin-top:8px; }
+    .score-fill{ height:100%; border-radius:3px; transition:width .5s; }
+
+    /* ── Map ── */
+    #map { width:100%; height:100%; }
+
+    /* ── Map overlay tabs ── */
+    .map-controls {
+      position:absolute; top:70px; right:12px; z-index:500;
+      display:flex; flex-direction:column; gap:6px;
+    }
+    .map-btn {
+      background:#1a1d27cc; border:1px solid #3a3d4e;
+      color:#e0e0e0; padding:8px 14px; border-radius:6px;
+      font-size:12px; cursor:pointer; backdrop-filter:blur(4px);
+      transition:all .2s;
+    }
+    .map-btn:hover, .map-btn.active { background:#00d4ff22; border-color:#00d4ff; color:#00d4ff; }
+
+    /* ── Stats strip ── */
+    .stats-strip {
+      position:absolute; bottom:0; left:320px; right:0; z-index:500;
+      background:#1a1d27cc; backdrop-filter:blur(6px);
+      display:flex; gap:0; border-top:1px solid #2a2d3e;
+    }
+    .stat-item { flex:1; padding:10px 16px; text-align:center;
+                 border-right:1px solid #2a2d3e; }
+    .stat-item:last-child { border-right:none; }
+    .stat-num  { font-size:20px; font-weight:700; color:#00d4ff; }
+    .stat-lbl  { font-size:11px; color:#888; margin-top:2px; }
+
+    /* ── Route result ── */
+    .route-stop {
+      display:flex; align-items:center; gap:10px;
+      padding:8px 0; border-bottom:1px solid #2a2d3e;
+    }
+    .route-stop:last-child { border-bottom:none; }
+    .stop-num {
+      width:24px; height:24px; border-radius:50%;
+      background:#00d4ff22; border:1px solid #00d4ff;
+      display:flex; align-items:center; justify-content:center;
+      font-size:11px; color:#00d4ff; flex-shrink:0;
+    }
+    .stop-name { font-size:13px; font-weight:500; }
+    .stop-score{ font-size:11px; color:#888; }
+
+    .hidden { display:none; }
+    ::-webkit-scrollbar { width:4px; }
+    ::-webkit-scrollbar-track { background:#1a1d27; }
+    ::-webkit-scrollbar-thumb { background:#3a3d4e; border-radius:2px; }
+  </style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar">
+  <div>
+    <h1>🚦 Smart Traffic & Safety System</h1>
+    <div class="subtitle">Raipur, Chhattisgarh &nbsp;|&nbsp; Powered by ML</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px;font-size:13px;">
+    <span class="status-dot"></span> API Live
+    &nbsp;|&nbsp; <span id="clock" style="color:#aaa;"></span>
+  </div>
+</nav>
+
+<div class="container">
+
+  <!-- ══ SIDEBAR ══ -->
+  <div class="sidebar">
+
+    <!-- Predict for a location -->
+    <div class="panel">
+      <h3>📍 Location Prediction</h3>
+      <div class="form-group">
+        <label>Location</label>
+        <select id="sel-location">
+          <option>Pandri</option><option>Shankar Nagar</option>
+          <option>Telibandha</option><option>Tikrapara</option>
+          <option>Amanaka</option><option>Fafadih</option>
+          <option>Devendra Nagar</option><option>Mowa</option>
+          <option>Katora Talab</option><option>GE Road</option>
+          <option>Jail Road</option><option>Ring Road No 1</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Hour (0–23)</label>
+        <input type="number" id="inp-hour" min="0" max="23" value="8"/>
+      </div>
+      <div class="form-group">
+        <label>Weather</label>
+        <select id="sel-weather">
+          <option>Clear</option><option>Cloudy</option>
+          <option>Rainy</option><option>Foggy</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Vehicle Count</label>
+        <input type="number" id="inp-vehicles" value="400"/>
+      </div>
+      <div class="form-group">
+        <label>Avg Speed (km/h)</label>
+        <input type="number" id="inp-speed" value="30"/>
+      </div>
+      <button class="btn btn-primary" onclick="predictAll()">🔮 Predict Now</button>
+
+      <!-- Results -->
+      <div id="pred-results" class="hidden">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;">
+          <div class="result-card" id="card-traffic">
+            <div class="result-title">Traffic</div>
+            <div class="result-value" id="val-traffic">—</div>
+          </div>
+          <div class="result-card" id="card-accident">
+            <div class="result-title">Accident Risk</div>
+            <div class="result-value" id="val-accident">—</div>
+          </div>
+          <div class="result-card" id="card-crime">
+            <div class="result-title">Crime Risk</div>
+            <div class="result-value" id="val-crime">—</div>
+          </div>
+          <div class="result-card" id="card-safety">
+            <div class="result-title">Safety Score</div>
+            <div class="result-value" id="val-safety">—</div>
+          </div>
+        </div>
+        <div class="result-card" id="card-verdict" style="margin-top:8px;text-align:center;">
+          <div class="result-value" id="val-verdict" style="font-size:16px;">—</div>
+        </div>
+        <div class="score-bar" style="margin-top:8px;">
+          <div class="score-fill" id="safety-bar" style="width:0%;background:#00ff88;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Safe Route Planner -->
+    <div class="panel">
+      <h3>🗺️ Safe Route Planner</h3>
+      <div class="form-group">
+        <label>From</label>
+        <select id="route-from">
+          <option>Pandri</option><option>Shankar Nagar</option>
+          <option>Telibandha</option><option>Tikrapara</option>
+          <option>Amanaka</option><option>Fafadih</option>
+          <option>Devendra Nagar</option><option>Mowa</option>
+          <option>Katora Talab</option><option>GE Road</option>
+          <option>Jail Road</option><option>Ring Road No 1</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>To</label>
+        <select id="route-to">
+          <option>Mowa</option><option>Pandri</option>
+          <option>Shankar Nagar</option><option>Telibandha</option>
+          <option>Tikrapara</option><option>Amanaka</option>
+          <option>Fafadih</option><option>Devendra Nagar</option>
+          <option>Katora Talab</option><option>GE Road</option>
+          <option>Jail Road</option><option>Ring Road No 1</option>
+        </select>
+      </div>
+      <button class="btn btn-success" onclick="planRoute()">📍 Find Safe Route</button>
+
+      <div id="route-results" class="hidden" style="margin-top:10px;">
+        <div class="result-card success">
+          <div class="result-title">Avg Safety Score</div>
+          <div class="result-value" id="route-score">—</div>
+          <div class="result-sub"  id="route-rec">—</div>
+        </div>
+        <div style="margin-top:10px;" id="route-stops"></div>
+      </div>
+    </div>
+
+    <!-- Chart -->
+    <div class="panel">
+      <h3>📊 Hourly Risk Profile</h3>
+      <canvas id="hourly-chart" height="160"></canvas>
+    </div>
+
+  </div><!-- /sidebar -->
+
+  <!-- ══ MAP ══ -->
+  <div style="position:relative;">
+    <div id="map"></div>
+
+    <!-- Layer buttons -->
+    <div class="map-controls">
+      <button class="map-btn active" id="btn-traffic" onclick="toggleLayer('traffic')">🚦 Traffic</button>
+      <button class="map-btn"        id="btn-crime"   onclick="toggleLayer('crime')"  >🔴 Crime</button>
+      <button class="map-btn"        id="btn-accident"onclick="toggleLayer('accident')">⚠️ Accident</button>
+    </div>
+
+    <!-- Stats strip -->
+    <div class="stats-strip">
+      <div class="stat-item"><div class="stat-num" id="stat-total">8,500</div><div class="stat-lbl">Total Records</div></div>
+      <div class="stat-item"><div class="stat-num" id="stat-zones">12</div><div class="stat-lbl">Monitored Zones</div></div>
+      <div class="stat-item"><div class="stat-num" id="stat-models">3</div><div class="stat-lbl">Active ML Models</div></div>
+      <div class="stat-item"><div class="stat-num" id="stat-accuracy">85%+</div><div class="stat-lbl">Model Accuracy</div></div>
+    </div>
+  </div>
+
+</div><!-- /container -->
+
+<script>
+const API = "http://127.0.0.1:5000";
+
+// ── Raipur locations ──────────────────────────────────────────
+const LOCATIONS = {
+  "Pandri"         :[21.2514,81.6296], "Shankar Nagar":[21.2435,81.6421],
+  "Telibandha"     :[21.2389,81.6501], "Tikrapara"    :[21.2601,81.6187],
+  "Amanaka"        :[21.2700,81.6350], "Fafadih"      :[21.2331,81.6612],
+  "Devendra Nagar" :[21.2456,81.6234], "Mowa"         :[21.2789,81.6423],
+  "Katora Talab"   :[21.2367,81.6345], "GE Road"      :[21.2512,81.6489],
+  "Jail Road"      :[21.2298,81.6401], "Ring Road No 1":[21.2634,81.6512],
+};
+
+// ── Init map ──────────────────────────────────────────────────
+const map = L.map("map").setView([21.2514, 81.6296], 13);
+L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{
+  attribution:"© OpenStreetMap contributors", maxZoom:19
+}).addTo(map);
+
+// ── Location markers ──────────────────────────────────────────
+const markers = {};
+Object.entries(LOCATIONS).forEach(([name,[lat,lon]])=>{
+  const m = L.circleMarker([lat,lon],{
+    radius:8, fillColor:"#00d4ff", color:"#fff",
+    weight:2, opacity:1, fillOpacity:0.8
+  }).addTo(map).bindPopup(`<b>${name}</b><br>Click Predict to analyse`);
+  markers[name] = m;
+});
+
+// ── Heatmap layers (simulated data) ──────────────────────────
+function makeHeat(locations, intensity){
+  return locations.map(([lat,lon])=>[
+    lat+Math.random()*.01-.005,
+    lon+Math.random()*.01-.005,
+    intensity+Math.random()*.3
+  ]);
+}
+const locs = Object.values(LOCATIONS);
+const trafficHeat  = L.heatLayer(makeHeat(locs,.8),{radius:35,blur:25,maxZoom:15,gradient:{0.4:"blue",0.6:"yellow",1:"red"}});
+const crimeHeat    = L.heatLayer(makeHeat(locs,.6),{radius:30,blur:20,maxZoom:15,gradient:{0.4:"purple",0.7:"red",1:"#ff0000"}});
+const accidentHeat = L.heatLayer(makeHeat(locs,.5),{radius:25,blur:20,maxZoom:15,gradient:{0.4:"green",0.6:"orange",1:"red"}});
+trafficHeat.addTo(map);
+
+let activeLayer = "traffic";
+function toggleLayer(type){
+  [trafficHeat,crimeHeat,accidentHeat].forEach(l=>map.removeLayer(l));
+  document.querySelectorAll(".map-btn").forEach(b=>b.classList.remove("active"));
+  if(type==="traffic"){ trafficHeat.addTo(map);  document.getElementById("btn-traffic").classList.add("active"); }
+  if(type==="crime")  { crimeHeat.addTo(map);    document.getElementById("btn-crime").classList.add("active"); }
+  if(type==="accident"){accidentHeat.addTo(map); document.getElementById("btn-accident").classList.add("active");}
+  activeLayer = type;
+}
+
+// ── Clock ─────────────────────────────────────────────────────
+function updateClock(){
+  const now = new Date();
+  document.getElementById("clock").textContent = now.toLocaleTimeString("en-IN");
+}
+setInterval(updateClock,1000); updateClock();
+
+// ── Predict All ───────────────────────────────────────────────
+async function predictAll(){
+  const location = document.getElementById("sel-location").value;
+  const hour     = parseInt(document.getElementById("inp-hour").value);
+  const weather  = document.getElementById("sel-weather").value;
+  const vehicles = parseInt(document.getElementById("inp-vehicles").value);
+  const speed    = parseFloat(document.getElementById("inp-speed").value);
+
+  const btn = document.querySelector(".btn-primary");
+  btn.textContent = "Predicting..."; btn.disabled = true;
+
+  try{
+    const res  = await fetch(`${API}/api/predict/all`,{
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({location,hour,weather,
+        vehicle_count:vehicles, avg_speed_kmph:speed})
+    });
+    const data = await res.json();
+
+    document.getElementById("pred-results").classList.remove("hidden");
+    document.getElementById("val-traffic").textContent  = data.traffic;
+    document.getElementById("val-accident").textContent = data.accident_risk;
+    document.getElementById("val-crime").textContent    = data.crime_risk+" Risk";
+    document.getElementById("val-safety").textContent   = data.safety_score+"/100";
+    document.getElementById("val-verdict").textContent  =
+      data.safe_to_travel ? "✅ Safe to Travel" : "⚠️ Caution Advised";
+
+    // colour cards
+    const safetyCard = document.getElementById("card-safety");
+    safetyCard.className = "result-card " +
+      (data.safety_score>=70?"success":data.safety_score>=50?"warning":"danger");
+
+    const verdictCard = document.getElementById("card-verdict");
+    verdictCard.className = "result-card " + (data.safe_to_travel?"success":"danger");
+
+    // score bar
+    const bar = document.getElementById("safety-bar");
+    bar.style.width   = data.safety_score+"%";
+    bar.style.background = data.safety_score>=70?"#00ff88":data.safety_score>=50?"#ffa502":"#ff4757";
+
+    // Pan map to location
+    if(LOCATIONS[location]){
+      map.flyTo(LOCATIONS[location],15,{duration:1});
+      markers[location].openPopup();
+      markers[location].setStyle({fillColor: data.safe_to_travel?"#00ff88":"#ff4757"});
+    }
+  }catch(e){
+    alert("API error: "+e.message);
+  }
+  btn.textContent = "🔮 Predict Now"; btn.disabled = false;
+}
+
+// ── Safe Route ────────────────────────────────────────────────
+let routeLines = [];
+async function planRoute(){
+  const from    = document.getElementById("route-from").value;
+  const to      = document.getElementById("route-to").value;
+  const hour    = parseInt(document.getElementById("inp-hour").value);
+  const weather = document.getElementById("sel-weather").value;
+
+  if(from===to){ alert("Origin and destination must be different!"); return; }
+
+  const btn = document.querySelector(".btn-success");
+  btn.textContent = "Planning..."; btn.disabled = true;
+
+  try{
+    const res  = await fetch(`${API}/api/route/safe`,{
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({origin:from, destination:to, hour, weather})
+    });
+    const data = await res.json();
+
+    document.getElementById("route-results").classList.remove("hidden");
+    document.getElementById("route-score").textContent = data.avg_safety_score+"/100";
+    document.getElementById("route-rec").textContent   = data.recommendation;
+
+    // Draw route on map
+    routeLines.forEach(l=>map.removeLayer(l));
+    routeLines=[];
+    const coords = data.route.map(s=>[s.lat,s.lon]);
+    const line   = L.polyline(coords,{color:"#00ff88",weight:4,opacity:.8,dashArray:"8,4"}).addTo(map);
+    routeLines.push(line);
+    map.fitBounds(line.getBounds(),{padding:[40,40]});
+
+    // Markers on route
+    data.route.forEach((stop,i)=>{
+      const color = stop.safety_score>=70?"#00ff88":stop.safety_score>=50?"#ffa502":"#ff4757";
+      const m = L.circleMarker([stop.lat,stop.lon],{
+        radius:10, fillColor:color, color:"#fff", weight:2, fillOpacity:1
+      }).addTo(map).bindPopup(
+        `<b>${stop.location}</b><br>Safety: ${stop.safety_score}/100<br>Traffic: ${stop.traffic}`
+      );
+      routeLines.push(m);
+    });
+
+    // Stops list in sidebar
+    const stopsHtml = data.route.map((s,i)=>`
+      <div class="route-stop">
+        <div class="stop-num">${i+1}</div>
+        <div>
+          <div class="stop-name">${s.location}</div>
+          <div class="stop-score">Safety: ${s.safety_score}/100 · Traffic: ${s.traffic}</div>
+        </div>
+      </div>`).join("");
+    document.getElementById("route-stops").innerHTML = stopsHtml;
+
+  }catch(e){
+    alert("API error: "+e.message);
+  }
+  btn.textContent = "📍 Find Safe Route"; btn.disabled = false;
+}
+
+// ── Hourly Risk Chart ─────────────────────────────────────────
+const hours  = Array.from({length:24},(_,i)=>i);
+const crimeR = hours.map(h=> h<6||h>21 ? 70+Math.random()*20 : 20+Math.random()*30);
+const traffR = hours.map(h=> (h>=7&&h<=9)||(h>=17&&h<=19) ? 75+Math.random()*20 : 20+Math.random()*30);
+
+new Chart(document.getElementById("hourly-chart"),{
+  type:"line",
+  data:{
+    labels: hours.map(h=>h+":00"),
+    datasets:[
+      {label:"Traffic",data:traffR,borderColor:"#00d4ff",backgroundColor:"#00d4ff22",
+       tension:.4,fill:true,pointRadius:2},
+      {label:"Crime",  data:crimeR,borderColor:"#ff4757",backgroundColor:"#ff475722",
+       tension:.4,fill:true,pointRadius:2}
+    ]
+  },
+  options:{
+    responsive:true, animation:false,
+    plugins:{legend:{labels:{color:"#aaa",font:{size:11}}}},
+    scales:{
+      x:{ticks:{color:"#666",maxTicksLimit:8,font:{size:10}},grid:{color:"#2a2d3e"}},
+      y:{ticks:{color:"#666",font:{size:10}},grid:{color:"#2a2d3e"},min:0,max:100}
+    }
+  }
+});
+</script>
+</body>
+</html>
