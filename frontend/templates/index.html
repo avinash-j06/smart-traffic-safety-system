@@ -4,152 +4,356 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Smart Traffic & Safety System — Raipur</title>
-
-  <!-- Leaflet map -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <!-- Leaflet heatmap plugin -->
   <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
-  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
 
   <style>
-    * { margin:0; padding:0; box-sizing:border-box; }
-    body { font-family: 'Segoe UI', sans-serif; background:#0f1117; color:#e0e0e0; }
+    :root {
+      --bg:       #080c14;
+      --panel:    #0d1220;
+      --card:     #131929;
+      --border:   #1e2a40;
+      --accent:   #00e5ff;
+      --green:    #00ff88;
+      --red:      #ff3d57;
+      --amber:    #ffb300;
+      --purple:   #7c4dff;
+      --text:     #cdd6f4;
+      --muted:    #6c7a9c;
+      --nav-h:    52px;
+    }
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{font-family:'Rajdhani',sans-serif;background:var(--bg);color:var(--text);overflow:hidden;}
 
-    /* ── Top navbar ── */
-    .navbar {
-      background:#1a1d27; padding:12px 24px;
-      display:flex; align-items:center; justify-content:space-between;
-      border-bottom:2px solid #2a2d3e; position:sticky; top:0; z-index:1000;
+    /* ── Navbar ── */
+    .navbar{
+      height:var(--nav-h);background:var(--panel);
+      display:flex;align-items:center;justify-content:space-between;
+      padding:0 20px;border-bottom:1px solid var(--border);
+      position:relative;z-index:1000;
     }
-    .navbar h1 { font-size:18px; color:#00d4ff; font-weight:600; }
-    .navbar .subtitle { font-size:12px; color:#888; margin-top:2px; }
-    .status-dot { width:10px; height:10px; background:#00ff88;
-                  border-radius:50%; display:inline-block;
-                  animation: pulse 2s infinite; margin-right:6px; }
-    @keyframes pulse {
-      0%,100%{ box-shadow:0 0 0 0 rgba(0,255,136,.4); }
-      50%    { box-shadow:0 0 0 6px rgba(0,255,136,0); }
-    }
+    .nav-brand{display:flex;align-items:center;gap:10px;}
+    .nav-brand .logo{font-size:22px;}
+    .nav-brand h1{font-size:17px;font-weight:700;color:var(--accent);letter-spacing:.5px;}
+    .nav-brand p{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;}
+    .nav-right{display:flex;align-items:center;gap:16px;font-size:13px;}
+    .live-dot{width:8px;height:8px;background:var(--green);border-radius:50%;
+      animation:blink 2s infinite;display:inline-block;margin-right:4px;}
+    @keyframes blink{0%,100%{opacity:1;}50%{opacity:.3;}}
+    #clock{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);}
 
     /* ── Layout ── */
-    .container { display:grid; grid-template-columns:320px 1fr; height:calc(100vh - 56px); }
+    .layout{
+      display:grid;grid-template-columns:300px 1fr;
+      height:calc(100vh - var(--nav-h));
+    }
 
     /* ── Sidebar ── */
-    .sidebar { background:#1a1d27; overflow-y:auto; border-right:1px solid #2a2d3e; }
-    .panel { padding:16px; border-bottom:1px solid #2a2d3e; }
-    .panel h3 { font-size:13px; color:#00d4ff; text-transform:uppercase;
-                letter-spacing:1px; margin-bottom:12px; }
-
-    .form-group { margin-bottom:10px; }
-    .form-group label { font-size:12px; color:#aaa; display:block; margin-bottom:4px; }
-    .form-group select, .form-group input {
-      width:100%; padding:8px 10px; background:#252836;
-      border:1px solid #3a3d4e; border-radius:6px;
-      color:#e0e0e0; font-size:13px; outline:none;
+    .sidebar{
+      background:var(--panel);border-right:1px solid var(--border);
+      overflow-y:auto;display:flex;flex-direction:column;
     }
-    .form-group select:focus, .form-group input:focus {
-      border-color:#00d4ff;
-    }
+    .sidebar::-webkit-scrollbar{width:3px;}
+    .sidebar::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
 
-    .btn {
-      width:100%; padding:10px; border:none; border-radius:6px;
-      font-size:13px; font-weight:600; cursor:pointer; margin-top:6px;
-      transition:opacity .2s;
+    .section{padding:14px 16px;border-bottom:1px solid var(--border);}
+    .section-title{
+      font-size:10px;font-weight:700;letter-spacing:2px;
+      color:var(--accent);text-transform:uppercase;margin-bottom:12px;
+      display:flex;align-items:center;gap:6px;
     }
-    .btn:hover { opacity:.85; }
-    .btn-primary   { background:#00d4ff; color:#0f1117; }
-    .btn-success   { background:#00ff88; color:#0f1117; }
-    .btn-danger    { background:#ff4757; color:#fff; }
+    .section-title::after{content:'';flex:1;height:1px;background:var(--border);}
 
-    /* ── Result cards ── */
-    .result-card {
-      background:#252836; border-radius:8px; padding:12px;
-      margin-top:10px; border-left:3px solid #00d4ff;
+    /* ── Form controls ── */
+    .fg{margin-bottom:10px;}
+    .fg label{font-size:11px;color:var(--muted);display:block;margin-bottom:4px;
+      font-family:'JetBrains Mono',monospace;letter-spacing:.5px;}
+    .fg select,.fg input{
+      width:100%;padding:8px 10px;background:var(--card);
+      border:1px solid var(--border);border-radius:6px;
+      color:var(--text);font-size:13px;font-family:'Rajdhani',sans-serif;
+      font-weight:500;outline:none;transition:border-color .2s;
     }
-    .result-card.danger { border-left-color:#ff4757; }
-    .result-card.warning{ border-left-color:#ffa502; }
-    .result-card.success{ border-left-color:#00ff88; }
-    .result-title { font-size:11px; color:#888; margin-bottom:4px; }
-    .result-value { font-size:20px; font-weight:700; color:#fff; }
-    .result-sub   { font-size:12px; color:#aaa; margin-top:2px; }
+    .fg select:focus,.fg input:focus{border-color:var(--accent);}
 
-    .score-bar { height:6px; background:#2a2d3e; border-radius:3px; margin-top:8px; }
-    .score-fill{ height:100%; border-radius:3px; transition:width .5s; }
+    /* ── Buttons ── */
+    .btn{
+      width:100%;padding:9px 14px;border:none;border-radius:6px;
+      font-size:13px;font-weight:700;font-family:'Rajdhani',sans-serif;
+      cursor:pointer;transition:all .2s;letter-spacing:.5px;
+      display:flex;align-items:center;justify-content:center;gap:6px;
+    }
+    .btn+.btn{margin-top:6px;}
+    .btn:hover{filter:brightness(1.12);transform:translateY(-1px);}
+    .btn:active{transform:translateY(0);}
+    .btn-cyan  {background:var(--accent);color:#080c14;}
+    .btn-green {background:var(--green);color:#080c14;}
+    .btn-purple{background:var(--purple);color:#fff;}
+    .btn-amber {background:var(--amber);color:#080c14;}
+    .btn-red   {background:var(--red);color:#fff;}
+    .btn-ghost {background:transparent;color:var(--text);border:1px solid var(--border);}
+    .btn:disabled{opacity:.45;cursor:not-allowed;transform:none;}
+
+    /* ── Cards ── */
+    .card{
+      background:var(--card);border:1px solid var(--border);
+      border-radius:8px;padding:12px;margin-top:10px;
+      border-left:3px solid var(--accent);
+    }
+    .card.c-green{border-left-color:var(--green);}
+    .card.c-red  {border-left-color:var(--red);}
+    .card.c-amber{border-left-color:var(--amber);}
+    .card.c-purple{border-left-color:var(--purple);}
+    .card-label{font-size:10px;color:var(--muted);letter-spacing:1px;
+      text-transform:uppercase;font-family:'JetBrains Mono',monospace;}
+    .card-value{font-size:22px;font-weight:700;color:#fff;margin-top:2px;}
+    .card-sub  {font-size:11px;color:var(--muted);margin-top:3px;}
+
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;}
+
+    .score-track{height:5px;background:var(--border);border-radius:3px;margin-top:8px;}
+    .score-fill {height:100%;border-radius:3px;transition:width .6s ease;}
+
+    /* ── Navigation panel (Google Maps style) ── */
+    #nav-panel{
+      background:var(--bg);border-top:2px solid var(--accent);
+      padding:0;overflow:hidden;
+      transition:max-height .4s ease;max-height:0;
+    }
+    #nav-panel.active{max-height:500px;}
+
+    .nav-bar{
+      background:#0a1628;padding:12px 16px;
+      display:flex;align-items:center;gap:12px;
+      border-bottom:1px solid var(--border);
+    }
+    .nav-dest{flex:1;}
+    .nav-dest .from{font-size:11px;color:var(--green);font-family:'JetBrains Mono',monospace;}
+    .nav-dest .to  {font-size:14px;font-weight:700;color:#fff;margin-top:1px;}
+    .nav-info{text-align:right;flex-shrink:0;}
+    .nav-dist{font-size:18px;font-weight:700;color:var(--accent);}
+    .nav-time{font-size:11px;color:var(--muted);}
+
+    /* Current step — big like Google Maps */
+    .current-step{
+      background:linear-gradient(135deg,#0d1a2e,#0a1220);
+      padding:14px 16px;display:flex;align-items:center;gap:14px;
+      border-bottom:1px solid var(--border);
+    }
+    .step-arrow{
+      width:48px;height:48px;border-radius:10px;
+      background:var(--accent);display:flex;align-items:center;
+      justify-content:center;font-size:24px;flex-shrink:0;color:#080c14;
+      font-weight:700;
+    }
+    .step-main{flex:1;}
+    .step-instruction{font-size:16px;font-weight:700;color:#fff;line-height:1.3;}
+    .step-distance{font-size:12px;color:var(--accent);margin-top:3px;
+      font-family:'JetBrains Mono',monospace;}
+    .step-next{font-size:11px;color:var(--muted);margin-top:2px;}
+
+    /* All steps list */
+    .steps-list{max-height:180px;overflow-y:auto;padding:8px 0;}
+    .steps-list::-webkit-scrollbar{width:3px;}
+    .steps-list::-webkit-scrollbar-thumb{background:var(--border);}
+    .step-row{
+      display:flex;align-items:center;gap:10px;
+      padding:7px 16px;border-bottom:1px solid var(--border);
+      cursor:pointer;transition:background .15s;
+    }
+    .step-row:hover{background:var(--card);}
+    .step-row.active-step{background:#0d1a2e;}
+    .step-row:last-child{border-bottom:none;}
+    .step-icon-sm{
+      width:28px;height:28px;border-radius:6px;
+      background:var(--border);display:flex;align-items:center;
+      justify-content:center;font-size:14px;flex-shrink:0;
+    }
+    .step-row.active-step .step-icon-sm{background:var(--accent);}
+    .step-row-text{flex:1;font-size:12px;color:var(--text);line-height:1.4;}
+    .step-row-dist{font-size:10px;color:var(--muted);font-family:'JetBrains Mono',monospace;}
+
+    /* ── Route stops ── */
+    .stop-row{
+      display:flex;align-items:center;gap:10px;
+      padding:8px 0;border-bottom:1px solid var(--border);
+    }
+    .stop-row:last-child{border-bottom:none;}
+    .stop-num{
+      width:22px;height:22px;border-radius:50%;
+      background:var(--accent)22;border:1px solid var(--accent);
+      display:flex;align-items:center;justify-content:center;
+      font-size:10px;color:var(--accent);flex-shrink:0;
+      font-family:'JetBrains Mono',monospace;
+    }
+    .stop-name{font-size:13px;font-weight:600;}
+    .stop-meta{font-size:10px;color:var(--muted);margin-top:1px;}
 
     /* ── Map ── */
-    #map { width:100%; height:100%; }
+    #map{width:100%;height:100%;}
 
-    /* ── Map overlay tabs ── */
-    .map-controls {
-      position:absolute; top:70px; right:12px; z-index:500;
-      display:flex; flex-direction:column; gap:6px;
+    /* ── Map overlay controls ── */
+    .map-wrap{position:relative;}
+    .layer-btns{
+      position:absolute;top:12px;right:12px;z-index:500;
+      display:flex;flex-direction:column;gap:5px;
     }
-    .map-btn {
-      background:#1a1d27cc; border:1px solid #3a3d4e;
-      color:#e0e0e0; padding:8px 14px; border-radius:6px;
-      font-size:12px; cursor:pointer; backdrop-filter:blur(4px);
-      transition:all .2s;
+    .layer-btn{
+      background:#0d1220cc;border:1px solid var(--border);
+      color:var(--text);padding:7px 12px;border-radius:6px;
+      font-size:11px;font-family:'Rajdhani',sans-serif;font-weight:600;
+      cursor:pointer;backdrop-filter:blur(6px);transition:all .2s;
+      letter-spacing:.5px;
     }
-    .map-btn:hover, .map-btn.active { background:#00d4ff22; border-color:#00d4ff; color:#00d4ff; }
+    .layer-btn:hover,.layer-btn.on{
+      background:var(--accent)22;border-color:var(--accent);color:var(--accent);
+    }
 
-    /* ── Stats strip ── */
-    .stats-strip {
-      position:absolute; bottom:0; left:320px; right:0; z-index:500;
-      background:#1a1d27cc; backdrop-filter:blur(6px);
-      display:flex; gap:0; border-top:1px solid #2a2d3e;
+    /* ── Stats bar ── */
+    .stats-bar{
+      position:absolute;bottom:0;left:0;right:0;z-index:500;
+      background:#080c14cc;backdrop-filter:blur(8px);
+      display:flex;border-top:1px solid var(--border);
     }
-    .stat-item { flex:1; padding:10px 16px; text-align:center;
-                 border-right:1px solid #2a2d3e; }
-    .stat-item:last-child { border-right:none; }
-    .stat-num  { font-size:20px; font-weight:700; color:#00d4ff; }
-    .stat-lbl  { font-size:11px; color:#888; margin-top:2px; }
+    .stat{flex:1;padding:8px 12px;text-align:center;border-right:1px solid var(--border);}
+    .stat:last-child{border-right:none;}
+    .stat-n{font-size:18px;font-weight:700;color:var(--accent);
+      font-family:'JetBrains Mono',monospace;}
+    .stat-l{font-size:10px;color:var(--muted);margin-top:1px;letter-spacing:.5px;}
 
-    /* ── Route result ── */
-    .route-stop {
-      display:flex; align-items:center; gap:10px;
-      padding:8px 0; border-bottom:1px solid #2a2d3e;
+    /* ── Floating buttons ── */
+    .fab{
+      position:fixed;border:none;border-radius:50%;cursor:pointer;
+      display:flex;align-items:center;justify-content:center;
+      font-size:22px;transition:all .2s;z-index:2000;
+      width:52px;height:52px;
     }
-    .route-stop:last-child { border-bottom:none; }
-    .stop-num {
-      width:24px; height:24px; border-radius:50%;
-      background:#00d4ff22; border:1px solid #00d4ff;
-      display:flex; align-items:center; justify-content:center;
-      font-size:11px; color:#00d4ff; flex-shrink:0;
+    .fab:hover{transform:scale(1.1);}
+    #fab-voice{
+      bottom:90px;right:20px;
+      background:var(--purple);box-shadow:0 4px 20px var(--purple)55;
     }
-    .stop-name { font-size:13px; font-weight:500; }
-    .stop-score{ font-size:11px; color:#888; }
+    #fab-voice.active{background:var(--red);animation:pulse-ring 1.2s infinite;}
+    @keyframes pulse-ring{
+      0%  {box-shadow:0 0 0 0 var(--red)66;}
+      70% {box-shadow:0 0 0 14px transparent;}
+      100%{box-shadow:0 0 0 0 transparent;}
+    }
+    #fab-chat{
+      bottom:24px;right:20px;
+      background:var(--accent);color:#080c14;
+      box-shadow:0 4px 20px var(--accent)55;
+    }
 
-    .hidden { display:none; }
-    ::-webkit-scrollbar { width:4px; }
-    ::-webkit-scrollbar-track { background:#1a1d27; }
-    ::-webkit-scrollbar-thumb { background:#3a3d4e; border-radius:2px; }
+    /* ── Chat window ── */
+    .chat-win{
+      position:fixed;bottom:88px;right:20px;z-index:1999;
+      width:310px;height:400px;background:var(--panel);
+      border:1px solid var(--border);border-radius:14px;
+      display:flex;flex-direction:column;overflow:hidden;
+      box-shadow:0 12px 40px #00000099;
+      transform:scale(0) translateY(20px);transform-origin:bottom right;
+      transition:transform .25s cubic-bezier(.34,1.56,.64,1);
+    }
+    .chat-win.open{transform:scale(1) translateY(0);}
+    .chat-head{
+      background:var(--card);padding:12px 14px;
+      display:flex;align-items:center;gap:10px;
+      border-bottom:1px solid var(--border);flex-shrink:0;
+    }
+    .chat-avatar{
+      width:30px;height:30px;border-radius:50%;
+      background:var(--accent)22;border:1px solid var(--accent);
+      display:flex;align-items:center;justify-content:center;font-size:14px;
+    }
+    .chat-title{font-size:14px;font-weight:700;color:#fff;}
+    .chat-online{font-size:10px;color:var(--green);font-family:'JetBrains Mono',monospace;}
+    .chat-close{margin-left:auto;background:none;border:none;
+      color:var(--muted);font-size:18px;cursor:pointer;line-height:1;padding:2px;}
+    .chat-msgs{
+      flex:1;overflow-y:auto;padding:10px;
+      display:flex;flex-direction:column;gap:7px;
+    }
+    .chat-msgs::-webkit-scrollbar{width:3px;}
+    .chat-msgs::-webkit-scrollbar-thumb{background:var(--border);}
+    .msg{
+      max-width:88%;padding:9px 11px;border-radius:10px;
+      font-size:12px;line-height:1.5;white-space:pre-wrap;
+    }
+    .msg.bot{
+      background:var(--card);border:1px solid var(--border);
+      align-self:flex-start;border-bottom-left-radius:3px;
+    }
+    .msg.user{
+      background:var(--accent)18;border:1px solid var(--accent)44;
+      align-self:flex-end;border-bottom-right-radius:3px;color:var(--accent);
+    }
+    .chat-foot{
+      padding:10px;border-top:1px solid var(--border);
+      display:flex;gap:7px;flex-shrink:0;
+    }
+    .chat-inp{
+      flex:1;background:var(--card);border:1px solid var(--border);
+      border-radius:7px;padding:7px 11px;color:var(--text);
+      font-size:12px;font-family:'Rajdhani',sans-serif;outline:none;
+    }
+    .chat-inp:focus{border-color:var(--accent);}
+    .chat-send{
+      background:var(--accent);border:none;border-radius:7px;
+      padding:7px 12px;color:#080c14;font-weight:700;
+      cursor:pointer;font-family:'Rajdhani',sans-serif;font-size:12px;
+    }
+
+    /* ── User GPS marker ── */
+    .gps-dot{
+      width:18px;height:18px;background:var(--accent);border-radius:50%;
+      border:3px solid #fff;box-shadow:0 0 0 4px var(--accent)44;
+      animation:gps-pulse 2s infinite;
+    }
+    @keyframes gps-pulse{
+      0%  {box-shadow:0 0 0 0  var(--accent)66;}
+      70% {box-shadow:0 0 0 12px transparent;}
+      100%{box-shadow:0 0 0 0  transparent;}
+    }
+
+    /* ── Direction arrow marker ── */
+    .dir-arrow{
+      font-size:28px;line-height:1;
+      filter:drop-shadow(0 2px 4px #00000088);
+    }
+
+    .hidden{display:none;}
   </style>
 </head>
 <body>
 
-<!-- Navbar -->
+<!-- ══ NAVBAR ══ -->
 <nav class="navbar">
-  <div>
-    <h1>🚦 Smart Traffic & Safety System</h1>
-    <div class="subtitle">Raipur, Chhattisgarh &nbsp;|&nbsp; Powered by ML</div>
+  <div class="nav-brand">
+    <span class="logo">🚦</span>
+    <div>
+      <h1>Smart Traffic & Safety</h1>
+      <p>Raipur, Chhattisgarh · ML-Powered</p>
+    </div>
   </div>
-  <div style="display:flex;align-items:center;gap:8px;font-size:13px;">
-    <span class="status-dot"></span> API Live
-    &nbsp;|&nbsp; <span id="clock" style="color:#aaa;"></span>
+  <div class="nav-right">
+    <span><span class="live-dot"></span>Live</span>
+    <span id="clock"></span>
   </div>
 </nav>
 
-<div class="container">
+<div class="layout">
 
   <!-- ══ SIDEBAR ══ -->
   <div class="sidebar">
 
-    <!-- Predict for a location -->
-    <div class="panel">
-      <h3>📍 Location Prediction</h3>
-      <div class="form-group">
+    <!-- Predict -->
+    <div class="section">
+      <div class="section-title">📍 Location Prediction</div>
+      <div class="fg">
         <label>Location</label>
         <select id="sel-location">
           <option>Pandri</option><option>Shankar Nagar</option>
@@ -160,60 +364,50 @@
           <option>Jail Road</option><option>Ring Road No 1</option>
         </select>
       </div>
-      <div class="form-group">
-        <label>Hour (0–23)</label>
-        <input type="number" id="inp-hour" min="0" max="23" value="8"/>
-      </div>
-      <div class="form-group">
+      <div class="fg">
         <label>Weather</label>
         <select id="sel-weather">
           <option>Clear</option><option>Cloudy</option>
           <option>Rainy</option><option>Foggy</option>
         </select>
       </div>
-      <div class="form-group">
-        <label>Vehicle Count</label>
-        <input type="number" id="inp-vehicles" value="400"/>
-      </div>
-      <div class="form-group">
-        <label>Avg Speed (km/h)</label>
-        <input type="number" id="inp-speed" value="30"/>
-      </div>
-      <button class="btn btn-primary" onclick="predictAll()">🔮 Predict Now</button>
+      <button class="btn btn-cyan" onclick="predictAll()">🔮 Predict Now</button>
+      <button class="btn btn-ghost" onclick="speakPrediction()" id="speak-btn" disabled>
+        🔊 Read Aloud
+      </button>
 
-      <!-- Results -->
       <div id="pred-results" class="hidden">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;">
-          <div class="result-card" id="card-traffic">
-            <div class="result-title">Traffic</div>
-            <div class="result-value" id="val-traffic">—</div>
+        <div class="grid2">
+          <div class="card" id="c-traffic">
+            <div class="card-label">Traffic</div>
+            <div class="card-value" id="v-traffic">—</div>
           </div>
-          <div class="result-card" id="card-accident">
-            <div class="result-title">Accident Risk</div>
-            <div class="result-value" id="val-accident">—</div>
+          <div class="card" id="c-accident">
+            <div class="card-label">Accident</div>
+            <div class="card-value" id="v-accident">—</div>
           </div>
-          <div class="result-card" id="card-crime">
-            <div class="result-title">Crime Risk</div>
-            <div class="result-value" id="val-crime">—</div>
+          <div class="card" id="c-crime">
+            <div class="card-label">Crime</div>
+            <div class="card-value" id="v-crime">—</div>
           </div>
-          <div class="result-card" id="card-safety">
-            <div class="result-title">Safety Score</div>
-            <div class="result-value" id="val-safety">—</div>
+          <div class="card" id="c-safety">
+            <div class="card-label">Safety</div>
+            <div class="card-value" id="v-safety">—</div>
           </div>
         </div>
-        <div class="result-card" id="card-verdict" style="margin-top:8px;text-align:center;">
-          <div class="result-value" id="val-verdict" style="font-size:16px;">—</div>
+        <div class="card" id="c-verdict" style="margin-top:8px;text-align:center;">
+          <div class="card-value" id="v-verdict" style="font-size:15px;">—</div>
         </div>
-        <div class="score-bar" style="margin-top:8px;">
-          <div class="score-fill" id="safety-bar" style="width:0%;background:#00ff88;"></div>
+        <div class="score-track">
+          <div class="score-fill" id="score-bar" style="width:0%;background:var(--green);"></div>
         </div>
       </div>
     </div>
 
-    <!-- Safe Route Planner -->
-    <div class="panel">
-      <h3>🗺️ Safe Route Planner</h3>
-      <div class="form-group">
+    <!-- Route + Navigation -->
+    <div class="section">
+      <div class="section-title">🗺️ Route & Navigation</div>
+      <div class="fg">
         <label>From</label>
         <select id="route-from">
           <option>Pandri</option><option>Shankar Nagar</option>
@@ -224,7 +418,7 @@
           <option>Jail Road</option><option>Ring Road No 1</option>
         </select>
       </div>
-      <div class="form-group">
+      <div class="fg">
         <label>To</label>
         <select id="route-to">
           <option>Mowa</option><option>Pandri</option>
@@ -235,244 +429,528 @@
           <option>Jail Road</option><option>Ring Road No 1</option>
         </select>
       </div>
-      <button class="btn btn-success" onclick="planRoute()">📍 Find Safe Route</button>
+      <button class="btn btn-green" onclick="planRoute()">📍 Safe Route</button>
+      <button class="btn btn-purple" onclick="getDirections()">🧭 Get Directions</button>
 
-      <div id="route-results" class="hidden" style="margin-top:10px;">
-        <div class="result-card success">
-          <div class="result-title">Avg Safety Score</div>
-          <div class="result-value" id="route-score">—</div>
-          <div class="result-sub"  id="route-rec">—</div>
+      <!-- START NAVIGATION BUTTON -->
+      <button class="btn btn-red hidden" id="btn-start-nav" onclick="startNavigation()">
+        ▶ START NAVIGATION
+      </button>
+      <button class="btn btn-ghost hidden" id="btn-stop-nav" onclick="stopNavigation()">
+        ⏹ Stop Navigation
+      </button>
+
+      <!-- Safe route result -->
+      <div id="route-results" class="hidden" style="margin-top:8px;">
+        <div class="card c-green">
+          <div class="card-label">Avg Safety Score</div>
+          <div class="card-value" id="route-score">—</div>
+          <div class="card-sub" id="route-rec">—</div>
         </div>
-        <div style="margin-top:10px;" id="route-stops"></div>
+        <div style="margin-top:8px;" id="route-stops"></div>
       </div>
     </div>
 
     <!-- Chart -->
-    <div class="panel">
-      <h3>📊 Hourly Risk Profile</h3>
-      <canvas id="hourly-chart" height="160"></canvas>
+    <div class="section">
+      <div class="section-title">📊 Hourly Risk</div>
+      <canvas id="hourly-chart" height="140"></canvas>
     </div>
 
   </div><!-- /sidebar -->
 
-  <!-- ══ MAP ══ -->
-  <div style="position:relative;">
-    <div id="map"></div>
+  <!-- ══ MAP + NAV PANEL ══ -->
+  <div style="display:flex;flex-direction:column;position:relative;">
 
-    <!-- Layer buttons -->
-    <div class="map-controls">
-      <button class="map-btn active" id="btn-traffic" onclick="toggleLayer('traffic')">🚦 Traffic</button>
-      <button class="map-btn"        id="btn-crime"   onclick="toggleLayer('crime')"  >🔴 Crime</button>
-      <button class="map-btn"        id="btn-accident"onclick="toggleLayer('accident')">⚠️ Accident</button>
+    <!-- Navigation panel (slides up from bottom like Google Maps) -->
+    <div id="nav-panel">
+      <div class="nav-bar">
+        <div class="nav-dest">
+          <div class="from" id="nav-from-label">—</div>
+          <div class="to"   id="nav-to-label">—</div>
+        </div>
+        <div class="nav-info">
+          <div class="nav-dist" id="nav-dist-label">—</div>
+          <div class="nav-time" id="nav-time-label">—</div>
+        </div>
+      </div>
+
+      <!-- Current step (big, prominent) -->
+      <div class="current-step" id="current-step-block">
+        <div class="step-arrow" id="step-arrow-icon">▶</div>
+        <div class="step-main">
+          <div class="step-instruction" id="step-instruction">Starting navigation…</div>
+          <div class="step-distance"    id="step-distance"></div>
+          <div class="step-next"        id="step-next-preview"></div>
+        </div>
+      </div>
+
+      <!-- All steps scrollable list -->
+      <div class="steps-list" id="steps-list"></div>
     </div>
 
-    <!-- Stats strip -->
-    <div class="stats-strip">
-      <div class="stat-item"><div class="stat-num" id="stat-total">8,500</div><div class="stat-lbl">Total Records</div></div>
-      <div class="stat-item"><div class="stat-num" id="stat-zones">12</div><div class="stat-lbl">Monitored Zones</div></div>
-      <div class="stat-item"><div class="stat-num" id="stat-models">3</div><div class="stat-lbl">Active ML Models</div></div>
-      <div class="stat-item"><div class="stat-num" id="stat-accuracy">85%+</div><div class="stat-lbl">Model Accuracy</div></div>
+    <div class="map-wrap" style="flex:1;position:relative;">
+      <div id="map"></div>
+
+      <div class="layer-btns">
+        <button class="layer-btn on"  id="lb-traffic"  onclick="toggleLayer('traffic')">🚦 Traffic</button>
+        <button class="layer-btn"     id="lb-crime"    onclick="toggleLayer('crime')">🔴 Crime</button>
+        <button class="layer-btn"     id="lb-accident" onclick="toggleLayer('accident')">⚠️ Accident</button>
+      </div>
+
+      <div class="stats-bar">
+        <div class="stat"><div class="stat-n">8,500</div><div class="stat-l">Records</div></div>
+        <div class="stat"><div class="stat-n">12</div><div class="stat-l">Zones</div></div>
+        <div class="stat"><div class="stat-n">3</div><div class="stat-l">ML Models</div></div>
+        <div class="stat"><div class="stat-n">85%+</div><div class="stat-l">Accuracy</div></div>
+      </div>
     </div>
   </div>
+</div>
 
-</div><!-- /container -->
+<!-- ══ FLOATING BUTTONS ══ -->
+<button class="fab" id="fab-voice" onclick="toggleVoice()" title="Voice Assistant">🎙️</button>
+<button class="fab" id="fab-chat"  onclick="toggleChat()"  title="Traffic Chatbot">💬</button>
+
+<!-- ══ CHAT WINDOW ══ -->
+<div class="chat-win" id="chat-win">
+  <div class="chat-head">
+    <div class="chat-avatar">🚦</div>
+    <div>
+      <div class="chat-title">Traffic Assistant</div>
+      <div class="chat-online">● online</div>
+    </div>
+    <button class="chat-close" onclick="toggleChat()">✕</button>
+  </div>
+  <div class="chat-msgs" id="chat-msgs">
+    <div class="msg bot">👋 Hi! I'm your Raipur Traffic &amp; Safety Assistant.
+
+Ask me about:
+• 🚦 Traffic conditions
+• ⚠️ Accident-prone areas
+• 🔴 Crime hotspots
+• 🗺️ Safe routes
+• 🕐 Best travel times</div>
+  </div>
+  <div class="chat-foot">
+    <input class="chat-inp" id="chat-inp" placeholder="Ask about traffic, safety…"
+      onkeydown="if(event.key==='Enter')sendChat()"/>
+    <button class="chat-send" onclick="sendChat()">Send</button>
+  </div>
+</div>
 
 <script>
 const API = "http://127.0.0.1:5000";
 
-// ── Raipur locations ──────────────────────────────────────────
-const LOCATIONS = {
-  "Pandri"         :[21.2514,81.6296], "Shankar Nagar":[21.2435,81.6421],
-  "Telibandha"     :[21.2389,81.6501], "Tikrapara"    :[21.2601,81.6187],
-  "Amanaka"        :[21.2700,81.6350], "Fafadih"      :[21.2331,81.6612],
-  "Devendra Nagar" :[21.2456,81.6234], "Mowa"         :[21.2789,81.6423],
-  "Katora Talab"   :[21.2367,81.6345], "GE Road"      :[21.2512,81.6489],
-  "Jail Road"      :[21.2298,81.6401], "Ring Road No 1":[21.2634,81.6512],
+// ── Locations ─────────────────────────────────────────────────
+const LOCS = {
+  "Pandri"         :[21.2514,81.6296],"Shankar Nagar":[21.2435,81.6421],
+  "Telibandha"     :[21.2389,81.6501],"Tikrapara"    :[21.2601,81.6187],
+  "Amanaka"        :[21.2700,81.6350],"Fafadih"      :[21.2331,81.6612],
+  "Devendra Nagar" :[21.2456,81.6234],"Mowa"         :[21.2789,81.6423],
+  "Katora Talab"   :[21.2367,81.6345],"GE Road"      :[21.2512,81.6489],
+  "Jail Road"      :[21.2298,81.6401],"Ring Road No 1":[21.2634,81.6512],
 };
 
-// ── Init map ──────────────────────────────────────────────────
-const map = L.map("map").setView([21.2514, 81.6296], 13);
+// ── Map init ──────────────────────────────────────────────────
+const map = L.map("map",{zoomControl:false}).setView([21.2514,81.6296],13);
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{
-  attribution:"© OpenStreetMap contributors", maxZoom:19
-}).addTo(map);
+  attribution:"© OpenStreetMap",maxZoom:19}).addTo(map);
+L.control.zoom({position:"topright"}).addTo(map);
 
-// ── Location markers ──────────────────────────────────────────
-const markers = {};
-Object.entries(LOCATIONS).forEach(([name,[lat,lon]])=>{
-  const m = L.circleMarker([lat,lon],{
-    radius:8, fillColor:"#00d4ff", color:"#fff",
-    weight:2, opacity:1, fillOpacity:0.8
-  }).addTo(map).bindPopup(`<b>${name}</b><br>Click Predict to analyse`);
-  markers[name] = m;
+// Location markers
+const locMarkers={};
+Object.entries(LOCS).forEach(([n,[la,lo]])=>{
+  locMarkers[n]=L.circleMarker([la,lo],{
+    radius:7,fillColor:"#00e5ff",color:"#fff",weight:2,fillOpacity:.85
+  }).addTo(map).bindPopup(`<b>${n}</b>`);
 });
 
-// ── Heatmap layers (simulated data) ──────────────────────────
-function makeHeat(locations, intensity){
-  return locations.map(([lat,lon])=>[
-    lat+Math.random()*.01-.005,
-    lon+Math.random()*.01-.005,
-    intensity+Math.random()*.3
-  ]);
-}
-const locs = Object.values(LOCATIONS);
-const trafficHeat  = L.heatLayer(makeHeat(locs,.8),{radius:35,blur:25,maxZoom:15,gradient:{0.4:"blue",0.6:"yellow",1:"red"}});
-const crimeHeat    = L.heatLayer(makeHeat(locs,.6),{radius:30,blur:20,maxZoom:15,gradient:{0.4:"purple",0.7:"red",1:"#ff0000"}});
-const accidentHeat = L.heatLayer(makeHeat(locs,.5),{radius:25,blur:20,maxZoom:15,gradient:{0.4:"green",0.6:"orange",1:"red"}});
-trafficHeat.addTo(map);
+// Heatmaps
+function mkHeat(l,i){return l.map(([a,o])=>[a+Math.random()*.01-.005,o+Math.random()*.01-.005,i+Math.random()*.3]);}
+const lv=Object.values(LOCS);
+const hTraffic =L.heatLayer(mkHeat(lv,.8),{radius:35,blur:25,gradient:{0.4:"blue",0.6:"yellow",1:"red"}});
+const hCrime   =L.heatLayer(mkHeat(lv,.6),{radius:30,blur:20,gradient:{0.4:"purple",0.7:"red",1:"#f00"}});
+const hAccident=L.heatLayer(mkHeat(lv,.5),{radius:25,blur:20,gradient:{0.4:"green",0.6:"orange",1:"red"}});
+hTraffic.addTo(map);
 
-let activeLayer = "traffic";
-function toggleLayer(type){
-  [trafficHeat,crimeHeat,accidentHeat].forEach(l=>map.removeLayer(l));
-  document.querySelectorAll(".map-btn").forEach(b=>b.classList.remove("active"));
-  if(type==="traffic"){ trafficHeat.addTo(map);  document.getElementById("btn-traffic").classList.add("active"); }
-  if(type==="crime")  { crimeHeat.addTo(map);    document.getElementById("btn-crime").classList.add("active"); }
-  if(type==="accident"){accidentHeat.addTo(map); document.getElementById("btn-accident").classList.add("active");}
-  activeLayer = type;
+function toggleLayer(t){
+  [hTraffic,hCrime,hAccident].forEach(l=>map.removeLayer(l));
+  document.querySelectorAll(".layer-btn").forEach(b=>b.classList.remove("on"));
+  if(t==="traffic"){ hTraffic.addTo(map);  document.getElementById("lb-traffic").classList.add("on");}
+  if(t==="crime")  { hCrime.addTo(map);    document.getElementById("lb-crime").classList.add("on");}
+  if(t==="accident"){hAccident.addTo(map); document.getElementById("lb-accident").classList.add("on");}
 }
 
 // ── Clock ─────────────────────────────────────────────────────
-function updateClock(){
-  const now = new Date();
-  document.getElementById("clock").textContent = now.toLocaleTimeString("en-IN");
+setInterval(()=>document.getElementById("clock").textContent=
+  new Date().toLocaleTimeString("en-IN"),1000);
+
+// ── State ─────────────────────────────────────────────────────
+let lastPrediction=null, lastDirections=null;
+let routeLayers=[], userMarker=null, userHeadingMarker=null;
+let navActive=false, navStepIdx=0, watchId=null;
+let navSteps=[], navPolyCoords=[];
+
+// ── GPS user marker ───────────────────────────────────────────
+const gpsIcon = L.divIcon({
+  html:`<div class="gps-dot"></div>`,
+  iconAnchor:[9,9], className:""
+});
+
+function makeArrowIcon(bearing){
+  // CSS rotate arrow based on bearing
+  return L.divIcon({
+    html:`<div class="dir-arrow" style="transform:rotate(${bearing}deg)">➤</div>`,
+    iconAnchor:[14,14], className:""
+  });
 }
-setInterval(updateClock,1000); updateClock();
 
-// ── Predict All ───────────────────────────────────────────────
+// ── Predict ───────────────────────────────────────────────────
 async function predictAll(){
-  const location = document.getElementById("sel-location").value;
-  const hour     = parseInt(document.getElementById("inp-hour").value);
-  const weather  = document.getElementById("sel-weather").value;
-  const vehicles = parseInt(document.getElementById("inp-vehicles").value);
-  const speed    = parseFloat(document.getElementById("inp-speed").value);
-
-  const btn = document.querySelector(".btn-primary");
-  btn.textContent = "Predicting..."; btn.disabled = true;
-
+  const location=document.getElementById("sel-location").value;
+  const weather =document.getElementById("sel-weather").value;
+  const hour    =new Date().getHours();
+  const btn=document.querySelector(".btn-cyan");
+  btn.textContent="Predicting…";btn.disabled=true;
   try{
-    const res  = await fetch(`${API}/api/predict/all`,{
-      method:"POST", headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({location,hour,weather,
-        vehicle_count:vehicles, avg_speed_kmph:speed})
-    });
-    const data = await res.json();
-
+    const r=await fetch(`${API}/api/predict/all`,{method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({location,weather,hour,vehicle_count:400,avg_speed_kmph:30})});
+    const d=await r.json();
+    lastPrediction=d;
     document.getElementById("pred-results").classList.remove("hidden");
-    document.getElementById("val-traffic").textContent  = data.traffic;
-    document.getElementById("val-accident").textContent = data.accident_risk;
-    document.getElementById("val-crime").textContent    = data.crime_risk+" Risk";
-    document.getElementById("val-safety").textContent   = data.safety_score+"/100";
-    document.getElementById("val-verdict").textContent  =
-      data.safe_to_travel ? "✅ Safe to Travel" : "⚠️ Caution Advised";
-
-    // colour cards
-    const safetyCard = document.getElementById("card-safety");
-    safetyCard.className = "result-card " +
-      (data.safety_score>=70?"success":data.safety_score>=50?"warning":"danger");
-
-    const verdictCard = document.getElementById("card-verdict");
-    verdictCard.className = "result-card " + (data.safe_to_travel?"success":"danger");
-
-    // score bar
-    const bar = document.getElementById("safety-bar");
-    bar.style.width   = data.safety_score+"%";
-    bar.style.background = data.safety_score>=70?"#00ff88":data.safety_score>=50?"#ffa502":"#ff4757";
-
-    // Pan map to location
-    if(LOCATIONS[location]){
-      map.flyTo(LOCATIONS[location],15,{duration:1});
-      markers[location].openPopup();
-      markers[location].setStyle({fillColor: data.safe_to_travel?"#00ff88":"#ff4757"});
-    }
-  }catch(e){
-    alert("API error: "+e.message);
-  }
-  btn.textContent = "🔮 Predict Now"; btn.disabled = false;
+    document.getElementById("v-traffic").textContent =d.traffic;
+    document.getElementById("v-accident").textContent=d.accident_risk;
+    document.getElementById("v-crime").textContent   =d.crime_risk+" Risk";
+    document.getElementById("v-safety").textContent  =d.safety_score+"/100";
+    document.getElementById("v-verdict").textContent =d.safe_to_travel?"✅ Safe to Travel":"⚠️ Caution Advised";
+    const sc=d.safety_score;
+    document.getElementById("c-safety").className="card "+(sc>=70?"c-green":sc>=50?"c-amber":"c-red");
+    document.getElementById("c-verdict").className="card "+(d.safe_to_travel?"c-green":"c-red");
+    const bar=document.getElementById("score-bar");
+    bar.style.width=sc+"%";
+    bar.style.background=sc>=70?"var(--green)":sc>=50?"var(--amber)":"var(--red)";
+    if(LOCS[location]){map.flyTo(LOCS[location],15,{duration:1.2});locMarkers[location].openPopup();}
+    document.getElementById("speak-btn").disabled=false;
+    speak(`${location}. Traffic ${d.traffic}. Accident risk ${d.accident_risk}. Crime risk ${d.crime_risk}. Safety score ${d.safety_score} out of 100. ${d.safe_to_travel?"Safe to travel.":"Caution advised."}`);
+  }catch(e){alert("API error: "+e.message);}
+  btn.textContent="🔮 Predict Now";btn.disabled=false;
 }
 
 // ── Safe Route ────────────────────────────────────────────────
-let routeLines = [];
 async function planRoute(){
-  const from    = document.getElementById("route-from").value;
-  const to      = document.getElementById("route-to").value;
-  const hour    = parseInt(document.getElementById("inp-hour").value);
-  const weather = document.getElementById("sel-weather").value;
-
-  if(from===to){ alert("Origin and destination must be different!"); return; }
-
-  const btn = document.querySelector(".btn-success");
-  btn.textContent = "Planning..."; btn.disabled = true;
-
+  const from=document.getElementById("route-from").value;
+  const to  =document.getElementById("route-to").value;
+  const hour=new Date().getHours();
+  const weather=document.getElementById("sel-weather").value;
+  if(from===to){alert("Pick different locations!");return;}
+  const btn=document.querySelector(".btn-green");
+  btn.textContent="Planning…";btn.disabled=true;
   try{
-    const res  = await fetch(`${API}/api/route/safe`,{
-      method:"POST", headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({origin:from, destination:to, hour, weather})
-    });
-    const data = await res.json();
-
+    const r=await fetch(`${API}/api/route/safe`,{method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({origin:from,destination:to,hour,weather})});
+    const d=await r.json();
     document.getElementById("route-results").classList.remove("hidden");
-    document.getElementById("route-score").textContent = data.avg_safety_score+"/100";
-    document.getElementById("route-rec").textContent   = data.recommendation;
-
-    // Draw route on map
-    routeLines.forEach(l=>map.removeLayer(l));
-    routeLines=[];
-    const coords = data.route.map(s=>[s.lat,s.lon]);
-    const line   = L.polyline(coords,{color:"#00ff88",weight:4,opacity:.8,dashArray:"8,4"}).addTo(map);
-    routeLines.push(line);
-    map.fitBounds(line.getBounds(),{padding:[40,40]});
-
-    // Markers on route
-    data.route.forEach((stop,i)=>{
-      const color = stop.safety_score>=70?"#00ff88":stop.safety_score>=50?"#ffa502":"#ff4757";
-      const m = L.circleMarker([stop.lat,stop.lon],{
-        radius:10, fillColor:color, color:"#fff", weight:2, fillOpacity:1
-      }).addTo(map).bindPopup(
-        `<b>${stop.location}</b><br>Safety: ${stop.safety_score}/100<br>Traffic: ${stop.traffic}`
-      );
-      routeLines.push(m);
+    document.getElementById("route-score").textContent=d.avg_safety_score+"/100";
+    document.getElementById("route-rec").textContent  =d.recommendation;
+    clearRouteLayers();
+    const coords=d.route.map(s=>[s.lat,s.lon]);
+    const line=L.polyline(coords,{color:"#00ff88",weight:4,opacity:.8,dashArray:"8,4"}).addTo(map);
+    routeLayers.push(line);
+    map.fitBounds(line.getBounds(),{padding:[50,50]});
+    d.route.forEach((s,i)=>{
+      const col=s.safety_score>=70?"#00ff88":s.safety_score>=50?"#ffb300":"#ff3d57";
+      const m=L.circleMarker([s.lat,s.lon],{radius:10,fillColor:col,color:"#fff",weight:2,fillOpacity:1})
+        .addTo(map).bindPopup(`<b>${s.location}</b><br>Safety: ${s.safety_score}/100`);
+      routeLayers.push(m);
     });
-
-    // Stops list in sidebar
-    const stopsHtml = data.route.map((s,i)=>`
-      <div class="route-stop">
+    document.getElementById("route-stops").innerHTML=d.route.map((s,i)=>`
+      <div class="stop-row">
         <div class="stop-num">${i+1}</div>
-        <div>
-          <div class="stop-name">${s.location}</div>
-          <div class="stop-score">Safety: ${s.safety_score}/100 · Traffic: ${s.traffic}</div>
-        </div>
+        <div><div class="stop-name">${s.location}</div>
+        <div class="stop-meta">Safety ${s.safety_score}/100 · ${s.traffic}</div></div>
       </div>`).join("");
-    document.getElementById("route-stops").innerHTML = stopsHtml;
-
-  }catch(e){
-    alert("API error: "+e.message);
-  }
-  btn.textContent = "📍 Find Safe Route"; btn.disabled = false;
+    speak(`Safe route from ${from} to ${to}. Average safety score ${d.avg_safety_score}. ${d.recommendation}.`);
+  }catch(e){alert("Error: "+e.message);}
+  btn.textContent="📍 Safe Route";btn.disabled=false;
 }
 
-// ── Hourly Risk Chart ─────────────────────────────────────────
-const hours  = Array.from({length:24},(_,i)=>i);
-const crimeR = hours.map(h=> h<6||h>21 ? 70+Math.random()*20 : 20+Math.random()*30);
-const traffR = hours.map(h=> (h>=7&&h<=9)||(h>=17&&h<=19) ? 75+Math.random()*20 : 20+Math.random()*30);
+// ── Get Directions ────────────────────────────────────────────
+const TYPE_ICON={0:"🚀",1:"↰",2:"↱",3:"↰",4:"↱",5:"↖",6:"↗",7:"↑",8:"🔄",10:"🏁",11:"↙",12:"↘"};
+const TYPE_LABEL={0:"Depart",1:"Turn left",2:"Turn right",3:"Sharp left",4:"Sharp right",
+  5:"Slight left",6:"Slight right",7:"Continue",8:"Roundabout",10:"Arrive",11:"Keep left",12:"Keep right"};
 
+async function getDirections(){
+  const from=document.getElementById("route-from").value;
+  const to  =document.getElementById("route-to").value;
+  if(from===to){alert("Pick different locations!");return;}
+  const btn=document.querySelector(".btn-purple");
+  btn.textContent="Fetching…";btn.disabled=true;
+  try{
+    const r=await fetch(`${API}/api/directions`,{method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({origin:from,destination:to})});
+    const d=await r.json();
+
+    if(d.error){alert("⚠️ "+d.error);btn.textContent="🧭 Get Directions";btn.disabled=false;return;}
+
+    lastDirections=d;
+    navSteps=d.directions;
+    navPolyCoords=d.polyline_coords;
+
+    // Draw road polyline
+    clearRouteLayers();
+    if(navPolyCoords&&navPolyCoords.length>1){
+      const outline=L.polyline(navPolyCoords,{color:"#ffffff",weight:12,opacity:.12}).addTo(map);
+      const road   =L.polyline(navPolyCoords,{color:"#7c4dff",weight:6,opacity:.95}).addTo(map);
+      routeLayers.push(outline,road);
+      map.fitBounds(road.getBounds(),{padding:[55,55]});
+    }
+
+    // Start / End pins
+    const [sla,slo]=LOCS[from], [ela,elo]=LOCS[to];
+    const startPin=L.divIcon({html:`<div style="background:var(--green,#00ff88);width:16px;height:16px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 10px #00ff88;"></div>`,iconAnchor:[8,8],className:""});
+    const endPin  =L.divIcon({html:`<div style="background:var(--red,#ff3d57);width:16px;height:16px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 10px #ff3d57;"></div>`,iconAnchor:[8,8],className:""});
+    routeLayers.push(
+      L.marker([sla,slo],{icon:startPin}).addTo(map).bindPopup(`<b>🚀 ${from}</b>`),
+      L.marker([ela,elo],{icon:endPin  }).addTo(map).bindPopup(`<b>🏁 ${to}</b>`)
+    );
+
+    // Populate nav panel
+    document.getElementById("nav-from-label").textContent=`FROM: ${from}`;
+    document.getElementById("nav-to-label").textContent  =to;
+    document.getElementById("nav-dist-label").textContent=d.total_distance+" km";
+    document.getElementById("nav-time-label").textContent="~"+d.total_duration+" min";
+
+    // Steps list
+    document.getElementById("steps-list").innerHTML=navSteps.map((s,i)=>`
+      <div class="step-row" id="sr-${i}" onclick="jumpToStep(${i})">
+        <div class="step-icon-sm">${TYPE_ICON[s.type]||"➡️"}</div>
+        <div>
+          <div class="step-row-text">${s.instruction}</div>
+          <div class="step-row-dist">${s.distance_km>0?s.distance_km+" km":""} ${s.duration_min>0?"· "+s.duration_min+" min":""}</div>
+        </div>
+      </div>`).join("");
+
+    // Show START button
+    document.getElementById("btn-start-nav").classList.remove("hidden");
+
+    speak(`Directions from ${from} to ${to}. ${d.total_distance} km, ${d.total_duration} minutes. Press Start Navigation to begin.`);
+  }catch(e){alert("Error: "+e.message);}
+  btn.textContent="🧭 Get Directions";btn.disabled=false;
+}
+
+// ── Jump to step ──────────────────────────────────────────────
+function jumpToStep(i){
+  navStepIdx=i;
+  updateCurrentStep();
+}
+
+function updateCurrentStep(){
+  if(!navSteps.length)return;
+  const s=navSteps[navStepIdx]||navSteps[navSteps.length-1];
+  const next=navSteps[navStepIdx+1];
+  document.getElementById("step-arrow-icon").textContent    = TYPE_ICON[s.type]||"➡️";
+  document.getElementById("step-instruction").textContent   = s.instruction;
+  document.getElementById("step-distance").textContent      = s.distance_km>0?`In ${s.distance_km} km`:"";
+  document.getElementById("step-next-preview").textContent  = next?`Then: ${next.instruction}`:"You have arrived!";
+  // Highlight in list
+  document.querySelectorAll(".step-row").forEach((r,i)=>
+    r.classList.toggle("active-step",i===navStepIdx));
+  // Auto scroll list
+  const el=document.getElementById("sr-"+navStepIdx);
+  if(el)el.scrollIntoView({behavior:"smooth",block:"nearest"});
+  // Speak current step
+  speak(s.instruction+(s.distance_km>0?" in "+s.distance_km+" kilometres":""));
+}
+
+// ── START NAVIGATION ─────────────────────────────────────────
+function startNavigation(){
+  navActive=true;
+  navStepIdx=0;
+
+  // Show nav panel, hide start button, show stop button
+  document.getElementById("nav-panel").classList.add("active");
+  document.getElementById("btn-start-nav").classList.add("hidden");
+  document.getElementById("btn-stop-nav").classList.remove("hidden");
+
+  updateCurrentStep();
+
+  // Try real GPS first
+  if(navigator.geolocation){
+    speak("Navigation started. Using your GPS location.");
+    watchId=navigator.geolocation.watchPosition(onGPSUpdate, onGPSError,
+      {enableHighAccuracy:true,maximumAge:3000,timeout:10000});
+  } else {
+    speak("Navigation started. GPS not available. Showing route from start point.");
+    // Fallback: place user marker at origin
+    const from=document.getElementById("route-from").value;
+    const [la,lo]=LOCS[from];
+    placeUserMarker(la,lo,0);
+    map.flyTo([la,lo],17,{duration:1.5});
+  }
+}
+
+// ── GPS update callback ───────────────────────────────────────
+function onGPSUpdate(pos){
+  const {latitude:lat,longitude:lon,heading,accuracy}=pos.coords;
+  const bear=heading||0;
+
+  placeUserMarker(lat,lon,bear);
+
+  // Smooth zoom to user on first fix
+  if(!userMarker||map.getZoom()<16){
+    map.flyTo([lat,lon],17,{duration:1.2});
+  } else {
+    map.panTo([lat,lon],{animate:true,duration:0.5});
+  }
+
+  // Auto-advance step: check if user is near next waypoint in polyline
+  if(navPolyCoords.length && navStepIdx < navSteps.length-1){
+    autoAdvanceStep(lat,lon);
+  }
+}
+
+function onGPSError(err){
+  console.warn("GPS error:",err.message);
+  // Fallback to start point
+  const from=document.getElementById("route-from").value;
+  const [la,lo]=LOCS[from];
+  placeUserMarker(la,lo,0);
+  map.flyTo([la,lo],17,{duration:1.5});
+}
+
+// ── Place user marker with direction arrow ────────────────────
+function placeUserMarker(lat,lon,bearing){
+  if(userMarker)map.removeLayer(userMarker);
+  if(userHeadingMarker)map.removeLayer(userHeadingMarker);
+
+  // Blue pulsing dot = current position
+  userMarker=L.marker([lat,lon],{icon:gpsIcon,zIndexOffset:1000}).addTo(map);
+
+  // Arrow showing direction of travel
+  if(bearing!==null && bearing!==undefined){
+    const arrowIcon=L.divIcon({
+      html:`<div style="font-size:28px;transform:rotate(${bearing}deg);filter:drop-shadow(0 2px 4px #00000088);line-height:1;color:#00e5ff;">➤</div>`,
+      iconAnchor:[14,14],className:""
+    });
+    userHeadingMarker=L.marker([lat,lon],{icon:arrowIcon,zIndexOffset:999}).addTo(map);
+  }
+}
+
+// ── Auto-advance navigation step by proximity ─────────────────
+function autoAdvanceStep(userLat,userLon){
+  // Find closest point on route polyline
+  let minDist=Infinity,closestIdx=0;
+  navPolyCoords.forEach(([la,lo],i)=>{
+    const d=Math.hypot(la-userLat,lo-userLon);
+    if(d<minDist){minDist=d;closestIdx=i;}
+  });
+
+  // Rough progress fraction
+  const progress=closestIdx/navPolyCoords.length;
+  const expectedStep=Math.floor(progress*(navSteps.length-1));
+  if(expectedStep>navStepIdx){
+    navStepIdx=expectedStep;
+    updateCurrentStep();
+  }
+}
+
+// ── STOP NAVIGATION ───────────────────────────────────────────
+function stopNavigation(){
+  navActive=false;
+  if(watchId)navigator.geolocation.clearWatch(watchId);
+  if(userMarker)map.removeLayer(userMarker);
+  if(userHeadingMarker)map.removeLayer(userHeadingMarker);
+  document.getElementById("nav-panel").classList.remove("active");
+  document.getElementById("btn-stop-nav").classList.add("hidden");
+  document.getElementById("btn-start-nav").classList.remove("hidden");
+  speak("Navigation stopped.");
+}
+
+// ── Clear route layers ────────────────────────────────────────
+function clearRouteLayers(){
+  routeLayers.forEach(l=>map.removeLayer(l));
+  routeLayers=[];
+}
+
+// ── Voice ─────────────────────────────────────────────────────
+const synth=window.speechSynthesis;
+let isSpeaking=false;
+function speak(text){
+  if(!text)return;
+  synth.cancel();
+  const u=new SpeechSynthesisUtterance(text);
+  u.lang="en-IN";u.rate=1;u.pitch=1;
+  const voices=synth.getVoices();
+  const v=voices.find(v=>v.lang==="en-IN")||voices.find(v=>v.lang.startsWith("en"));
+  if(v)u.voice=v;
+  u.onstart=()=>{isSpeaking=true;document.getElementById("fab-voice").classList.add("active");document.getElementById("fab-voice").textContent="🔇";}
+  u.onend  =()=>{isSpeaking=false;document.getElementById("fab-voice").classList.remove("active");document.getElementById("fab-voice").textContent="🎙️";}
+  synth.speak(u);
+}
+function toggleVoice(){
+  if(isSpeaking){synth.cancel();return;}
+  speak("Welcome to Smart Traffic and Safety System for Raipur. Select a location to get predictions, or use the route planner to find the safest path.");
+}
+function speakPrediction(){
+  if(!lastPrediction)return;
+  const d=lastPrediction;
+  speak(`${d.location}. Traffic ${d.traffic}. Accident risk ${d.accident_risk}. Crime risk ${d.crime_risk}. Safety score ${d.safety_score} out of 100. ${d.safe_to_travel?"Safe to travel.":"Caution advised."}`);
+}
+
+// ── Chat ──────────────────────────────────────────────────────
+let chatOpen=false;
+function toggleChat(){
+  chatOpen=!chatOpen;
+  document.getElementById("chat-win").classList.toggle("open",chatOpen);
+  if(chatOpen)document.getElementById("chat-inp").focus();
+}
+function addMsg(text,role){
+  const c=document.getElementById("chat-msgs");
+  const d=document.createElement("div");
+  d.className="msg "+role;d.textContent=text;
+  c.appendChild(d);c.scrollTop=c.scrollHeight;
+}
+async function sendChat(){
+  const inp=document.getElementById("chat-inp");
+  const msg=inp.value.trim();if(!msg)return;
+  inp.value="";addMsg(msg,"user");
+  const t=document.createElement("div");
+  t.className="msg bot";t.id="typing";t.textContent="…";
+  document.getElementById("chat-msgs").appendChild(t);
+  try{
+    const r=await fetch(`${API}/api/chat`,{method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({message:msg})});
+    const d=await r.json();
+    document.getElementById("typing").remove();
+    addMsg(d.reply,"bot");
+    speak(d.reply.replace(/[🚦⚠️🔴🗺️🕐✅🌧️👋•\n]/g," "));
+  }catch(e){
+    document.getElementById("typing").remove();
+    addMsg("Server offline. Make sure Flask is running.","bot");
+  }
+}
+
+// ── Hourly chart ──────────────────────────────────────────────
+const hrs=Array.from({length:24},(_,i)=>i);
 new Chart(document.getElementById("hourly-chart"),{
   type:"line",
-  data:{
-    labels: hours.map(h=>h+":00"),
-    datasets:[
-      {label:"Traffic",data:traffR,borderColor:"#00d4ff",backgroundColor:"#00d4ff22",
-       tension:.4,fill:true,pointRadius:2},
-      {label:"Crime",  data:crimeR,borderColor:"#ff4757",backgroundColor:"#ff475722",
-       tension:.4,fill:true,pointRadius:2}
-    ]
-  },
-  options:{
-    responsive:true, animation:false,
-    plugins:{legend:{labels:{color:"#aaa",font:{size:11}}}},
+  data:{labels:hrs.map(h=>h+":00"),datasets:[
+    {label:"Traffic",data:hrs.map(h=>(h>=7&&h<=9)||(h>=17&&h<=19)?75+Math.random()*20:20+Math.random()*30),
+     borderColor:"#00e5ff",backgroundColor:"#00e5ff18",tension:.4,fill:true,pointRadius:2},
+    {label:"Crime",  data:hrs.map(h=>h<6||h>21?70+Math.random()*20:20+Math.random()*30),
+     borderColor:"#ff3d57",backgroundColor:"#ff3d5718",tension:.4,fill:true,pointRadius:2}
+  ]},
+  options:{responsive:true,animation:false,
+    plugins:{legend:{labels:{color:"#6c7a9c",font:{size:10},boxWidth:12}}},
     scales:{
-      x:{ticks:{color:"#666",maxTicksLimit:8,font:{size:10}},grid:{color:"#2a2d3e"}},
-      y:{ticks:{color:"#666",font:{size:10}},grid:{color:"#2a2d3e"},min:0,max:100}
-    }
-  }
+      x:{ticks:{color:"#6c7a9c",maxTicksLimit:8,font:{size:9}},grid:{color:"#1e2a40"}},
+      y:{ticks:{color:"#6c7a9c",font:{size:9}},grid:{color:"#1e2a40"},min:0,max:100}
+    }}
 });
 </script>
 </body>
