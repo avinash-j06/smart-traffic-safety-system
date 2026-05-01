@@ -16,9 +16,11 @@ from flask_cors import CORS
 ORS_KEY = os.getenv("ORS_API_KEY", "")
 print(f"ORS Key loaded: {'YES' if ORS_KEY else 'NO - check your .env file'}")
 
+import os
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 app = Flask(__name__,
-            template_folder="../frontend/templates",
-            static_folder="../frontend/static")
+            template_folder=os.path.join(BASE_DIR, "../frontend/templates"),
+            static_folder=os.path.join(BASE_DIR, "../frontend/static"))
 CORS(app)
 
 # ── Load all 3 models at startup ──────────────────────────────
