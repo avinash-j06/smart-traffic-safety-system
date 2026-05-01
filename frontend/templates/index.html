@@ -567,11 +567,31 @@ Object.entries(LOCS).forEach(([n,[la,lo]])=>{
 });
 
 // Heatmaps
-function mkHeat(l,i){return l.map(([a,o])=>[a+Math.random()*.01-.005,o+Math.random()*.01-.005,i+Math.random()*.3]);}
+function mkHeat(l,i){
+  const pts = [];
+  l.forEach(([a,o])=>{
+    // Add main point
+    pts.push([a+Math.random()*.008-.004, o+Math.random()*.008-.004, 1.0]);
+    // Add surrounding scatter points for density
+    for(let j=0;j<4;j++){
+      pts.push([a+Math.random()*.015-.0075, o+Math.random()*.015-.0075, 0.6+Math.random()*0.4]);
+    }
+  });
+  return pts;
+}
 const lv=Object.values(LOCS);
-const hTraffic =L.heatLayer(mkHeat(lv,.8),{radius:35,blur:25,gradient:{0.4:"blue",0.6:"yellow",1:"red"}});
-const hCrime   =L.heatLayer(mkHeat(lv,.6),{radius:30,blur:20,gradient:{0.4:"purple",0.7:"red",1:"#f00"}});
-const hAccident=L.heatLayer(mkHeat(lv,.5),{radius:25,blur:20,gradient:{0.4:"green",0.6:"orange",1:"red"}});
+const hTraffic  = L.heatLayer(mkHeat(lv,1.0),{
+  radius:40, blur:20, maxZoom:15, max:1.0,
+  gradient:{0.2:"#0000ff",0.4:"#00ffff",0.6:"#ffff00",0.8:"#ff6600",1.0:"#ff0000"}
+});
+const hCrime    = L.heatLayer(mkHeat(lv,1.0),{
+  radius:38, blur:18, maxZoom:15, max:1.0,
+  gradient:{0.2:"#3d0066",0.4:"#9900cc",0.6:"#ff00ff",0.8:"#ff0066",1.0:"#ff0000"}
+});
+const hAccident = L.heatLayer(mkHeat(lv,1.0),{
+  radius:36, blur:18, maxZoom:15, max:1.0,
+  gradient:{0.2:"#003300",0.4:"#009900",0.6:"#ffcc00",0.8:"#ff6600",1.0:"#ff0000"}
+});
 hTraffic.addTo(map);
 
 function toggleLayer(t){
