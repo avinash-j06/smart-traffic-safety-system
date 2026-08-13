@@ -66,19 +66,11 @@ def get_time_features(hour=None, day_of_week=None, month=None):
 # ════════════════════════════════════════════════
 # ROUTE 1 — Health check
 # ════════════════════════════════════════════════
+from flask import Flask, render_template, request, jsonify
+
 @app.route("/")
 def home():
-    return jsonify({
-        "status" : "running",
-        "message": "Smart Traffic API is live!",
-        "endpoints": [
-            "/api/predict/traffic",
-            "/api/predict/accident",
-            "/api/predict/crime",
-            "/api/predict/all",
-            "/api/route/safe"
-        ]
-    })
+    return render_template("index.html")
 
 
 # ════════════════════════════════════════════════
