@@ -21,6 +21,11 @@ The system consists of:
 
 ---
 
+## 🌐 Live Demo
+
+🚀 **Try the live application here:**  
+[🔗 Open Smart Traffic Safety System](https://smart-traffic-raipur.onrender.com)
+
 ## 🎯 Features
 
 | Feature | Description |
