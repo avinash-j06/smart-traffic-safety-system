@@ -6,6 +6,11 @@
 
 ---
 
+## 🌐 Live Demo
+
+🚀 **Try the live application here:**  
+[🔗 Open Smart Traffic Safety System](https://smart-traffic-raipur.onrender.com)
+
 ## 📌 Project Overview
 
 This project is a full-stack intelligent traffic and safety system that uses
@@ -20,11 +25,6 @@ The system consists of:
 - An **interactive web dashboard** with a live map, heatmaps, and charts
 
 ---
-
-## 🌐 Live Demo
-
-🚀 **Try the live application here:**  
-[🔗 Open Smart Traffic Safety System](https://smart-traffic-raipur.onrender.com)
 
 ## 🎯 Features
 
