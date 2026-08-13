@@ -1,137 +1,287 @@
 # 🚦 Smart Traffic, Accident & Crime Prediction + Safe Route System
 
-> A machine learning powered web application for real-time traffic monitoring,
-> accident risk assessment, crime hotspot prediction, and safe route planning
-> for **Raipur, Chhattisgarh, India**.
+<p align="center">
+  <img src="https://img.shields.io/badge/AI%20Powered-Smart%20Safety%20System-blueviolet?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/Machine%20Learning-3%20Models-success?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/Location-Raipur%2C%20India-orange?style=for-the-badge" />
+</p>
+
+<p align="center">
+  <a href="https://smart-traffic-raipur.onrender.com">
+    <img src="https://img.shields.io/badge/🚀%20Live%20Demo-Open%20Application-success?style=for-the-badge" />
+  </a>
+  <a href="https://github.com/avinash-j06/smart-traffic-safety-system">
+    <img src="https://img.shields.io/badge/GitHub-Repository-black?style=for-the-badge&logo=github" />
+  </a>
+</p>
+
+<p align="center">
+  <b>An AI-powered traffic and public safety intelligence system for Raipur, Chhattisgarh.</b>
+</p>
 
 ---
 
-## 🌐 Live Demo
+# 🌐 Live Demo
 
-🚀 **Try the live application here:**  
-[🔗 Open Smart Traffic Safety System](https://smart-traffic-raipur.onrender.com)
+<p align="center">
 
-## 📌 Project Overview
+### 🚀 [Open Smart Traffic Safety System](https://smart-traffic-raipur.onrender.com)
 
-This project is a full-stack intelligent traffic and safety system that uses
-machine learning models to predict traffic congestion, accident severity, and
-crime risk for different locations in Raipur. It also recommends the safest
-route between two locations based on live ML predictions.
+</p>
 
-The system consists of:
-- A **Python data pipeline** for data generation and cleaning
-- Three **ML models** trained on realistic Raipur area data
-- A **Flask REST API** serving predictions via HTTP endpoints
-- An **interactive web dashboard** with a live map, heatmaps, and charts
+> ⚠️ **Note:** The application is hosted on Render. If the server is inactive, the first request may take a few moments to start.
 
 ---
 
-## 🎯 Features
+# 📌 Project Overview
 
-| Feature | Description |
-|---|---|
-| 🚦 Traffic Congestion Prediction | Predicts Free / Moderate / Heavy congestion based on hour, weather, vehicle count |
-| ⚠️ Accident Severity Prediction | Predicts Minor / Moderate / Severe / Fatal risk based on road and weather conditions |
-| 🔴 Crime Risk Prediction | Predicts High / Low crime risk for a location and time |
-| 📍 Combined Location Analysis | Single API call gives traffic + accident + crime + safety score for any location |
-| 🗺️ Safe Route Planner | Recommends the safest path between two Raipur locations |
-| 📊 Interactive Dashboard | Dark-themed web UI with live Leaflet.js map, heatmaps, and Chart.js visualizations |
+Smart Traffic Safety System is a **full-stack Machine Learning web application** designed to analyze traffic conditions, accident risks, and crime hotspots across different locations in **Raipur, Chhattisgarh**.
 
----
+The system combines predictions from **three Machine Learning models** and generates a unified **Safety Score (0–100)** to help users understand how safe a location is for travel.
 
-## 🛠️ Tech Stack
+It also includes an interactive **Safe Route Planner** that recommends safer travel routes between locations.
 
-| Layer | Technology |
-|---|---|
-| Language | Python 3.13 |
-| ML Models | XGBoost, Random Forest, Gradient Boosting (scikit-learn) |
-| Backend | Flask, Flask-CORS |
-| Data Processing | Pandas, NumPy |
-| Model Persistence | Joblib |
-| Frontend | HTML5, CSS3, JavaScript |
-| Maps | Leaflet.js + OpenStreetMap (free, open-source) |
-| Charts | Chart.js |
-| Heatmaps | Leaflet.heat plugin |
+## 🧠 What the System Can Do?
 
----
-
-## 📁 Project Structure
-
-```
-smart traffic project/
-│
-├── data/
-│   ├── raw/                        # Original generated datasets
-│   │   ├── traffic_data.csv        # 5,000 traffic records
-│   │   ├── accident_data.csv       # 1,500 accident records
-│   │   └── crime_data.csv          # 2,000 crime records
-│   └── processed/                  # Cleaned & feature-engineered data
-│       ├── traffic_clean.csv
-│       ├── accident_clean.csv
-│       └── crime_clean.csv
-│
-├── models/                         # Trained ML model files
-│   ├── traffic_model.pkl           # XGBoost — 99.8% accuracy
-│   ├── accident_model.pkl          # Random Forest
-│   └── crime_model.pkl             # Gradient Boosting — 85.8% accuracy
-│
-├── notebooks/                      # Data pipeline scripts
-│   ├── generate_data.py            # Generates synthetic Raipur datasets
-│   ├── clean_data.py               # Cleans and engineers features
-│   └── train_models.py             # Trains and saves all 3 ML models
-│
-├── backend/
-│   ├── app.py                      # Flask API with all endpoints
-│   └── config.py                   # Configuration settings
-│
-├── frontend/
-│   ├── templates/
-│   │   └── index.html              # Main dashboard page
-│   └── static/                     # CSS, JS, images
-│
-├── .env                            # Environment variables
-├── requirements.txt                # Python dependencies
-└── README.md                       # This file
+```text
+                📍 Select Location
+                        │
+                        ▼
+        ┌───────────────────────────────┐
+        │     SMART SAFETY ENGINE       │
+        └───────────────────────────────┘
+                 │       │       │
+                 ▼       ▼       ▼
+             🚦 Traffic ⚠️ Accident 🔴 Crime
+                 │       │       │
+                 └───────┼───────┘
+                         ▼
+                  🧮 Safety Score
+                         │
+                         ▼
+              🟢 Safe / ⚠️ Caution / 🔴 Avoid
+                         │
+                         ▼
+                  🗺️ Safe Route
 ```
 
 ---
 
-## 🤖 ML Models
+# ✨ Key Features
 
-### Model 1 — Traffic Congestion Predictor
-- **Algorithm:** XGBoost Classifier
-- **Target:** Congestion level (0=Free, 1=Moderate, 2=Heavy)
-- **Accuracy:** 99.8%
-- **Key features:** Hour, vehicle count, speed, weather, rush hour flag
-
-### Model 2 — Accident Severity Predictor
-- **Algorithm:** Random Forest Classifier
-- **Target:** Severity (0=Minor, 1=Moderate, 2=Severe, 3=Fatal)
-- **Key features:** Road type, weather, time of day, speed limit, vehicles involved
-
-### Model 3 — Crime Risk Predictor
-- **Algorithm:** Gradient Boosting Classifier
-- **Target:** High risk (1) or Low risk (0)
-- **Accuracy:** 85.8%
-- **Key features:** Hour, is_night, day of week, crime type, weekend flag
+| Feature                         | Description                                                               |
+| ------------------------------- | ------------------------------------------------------------------------- |
+| 🚦 **Traffic Prediction**       | Predicts Free, Moderate, or Heavy traffic congestion                      |
+| ⚠️ **Accident Risk Analysis**   | Predicts accident severity based on road and environmental conditions     |
+| 🔴 **Crime Hotspot Prediction** | Identifies High or Low crime-risk areas                                   |
+| 🧮 **Safety Score**             | Combines traffic, accident, and crime predictions into a score from 0–100 |
+| 🗺️ **Safe Route Planner**      | Recommends safer routes between Raipur locations                          |
+| 📍 **Interactive Map**          | Visualizes locations, routes, and risk zones                              |
+| 🔥 **Heatmaps**                 | Displays Traffic, Crime, and Accident hotspots                            |
+| 📊 **Live Analytics**           | Interactive charts and hourly risk visualization                          |
+| 🕒 **Real-Time Clock**          | Displays current system time on the dashboard                             |
 
 ---
 
-## 🌐 API Endpoints
+# 🖥️ Dashboard Preview
 
-| Method | Endpoint | Description |
-|---|---|---|
-| GET | `/` | Health check — lists all endpoints |
-| GET | `/dashboard` | Serves the web dashboard |
-| POST | `/api/predict/traffic` | Predict traffic congestion |
-| POST | `/api/predict/accident` | Predict accident severity |
-| POST | `/api/predict/crime` | Predict crime risk |
-| POST | `/api/predict/all` | Combined prediction + safety score |
-| POST | `/api/route/safe` | Find safest route between two locations |
+```text
+┌──────────────────────────────────────────────────────────────┐
+│ 🚦 SMART TRAFFIC & SAFETY SYSTEM                             │
+├──────────────────────────────────────────────────────────────┤
+│                                                              │
+│ 📍 Location: Pandri                                          │
+│                                                              │
+│ 🚦 Traffic: HEAVY                                            │
+│ ⚠️ Accident Risk: MODERATE                                  │
+│ 🔴 Crime Risk: HIGH                                         │
+│                                                              │
+│ 🧮 Safety Score: 35 / 100                                   │
+│                                                              │
+│ 🔴 Recommendation: AVOID / USE SAFER ROUTE                  │
+│                                                              │
+│ 🗺️ Interactive Map + Heatmaps + Safe Route                  │
+│                                                              │
+└──────────────────────────────────────────────────────────────┘
+```
 
-### Example API Request
+---
 
-**POST** `/api/predict/all`
+# 🛠️ Technology Stack
+
+## 🧠 Machine Learning
+
+| Technology            | Usage                            |
+| --------------------- | -------------------------------- |
+| **XGBoost**           | Traffic Congestion Prediction    |
+| **Random Forest**     | Accident Severity Prediction     |
+| **Gradient Boosting** | Crime Risk Prediction            |
+| **Scikit-learn**      | ML model training and evaluation |
+| **Joblib**            | Model serialization              |
+
+## ⚙️ Backend
+
+* Python 3.13
+* Flask
+* Flask-CORS
+* REST API
+
+## 🎨 Frontend
+
+* HTML5
+* CSS3
+* JavaScript
+* Chart.js
+
+## 🗺️ Maps & Visualization
+
+* Leaflet.js
+* OpenStreetMap
+* Leaflet.heat
+
+## 📊 Data Processing
+
+* Pandas
+* NumPy
+
+---
+
+# 🤖 Machine Learning Models
+
+## 1️⃣ Traffic Congestion Predictor 🚦
+
+| Property   | Details                                        |
+| ---------- | ---------------------------------------------- |
+| Algorithm  | XGBoost Classifier                             |
+| Prediction | Free / Moderate / Heavy                        |
+| Accuracy   | **99.8%**                                      |
+| Features   | Hour, Vehicle Count, Speed, Weather, Rush Hour |
+
+### Example
+
+```text
+Input:
+Hour = 18
+Weather = Rainy
+Vehicle Count = 700
+Speed = 20 km/h
+
+↓
+
+Prediction
+
+🚦 HEAVY TRAFFIC
+```
+
+---
+
+## 2️⃣ Accident Severity Predictor ⚠️
+
+| Property   | Details                                         |
+| ---------- | ----------------------------------------------- |
+| Algorithm  | Random Forest Classifier                        |
+| Prediction | Minor / Moderate / Severe / Fatal               |
+| Features   | Road Type, Weather, Time, Speed Limit, Vehicles |
+
+### Example
+
+```text
+Rainy Weather
+      +
+High Vehicle Speed
+      +
+Busy Road
+      ↓
+
+⚠️ SEVERE ACCIDENT RISK
+```
+
+---
+
+## 3️⃣ Crime Risk Predictor 🔴
+
+| Property   | Details                                    |
+| ---------- | ------------------------------------------ |
+| Algorithm  | Gradient Boosting Classifier               |
+| Prediction | High Risk / Low Risk                       |
+| Accuracy   | **85.8%**                                  |
+| Features   | Hour, Night Flag, Day, Crime Type, Weekend |
+
+### Example
+
+```text
+Late Night
+    +
+Weekend
+    +
+High Risk Zone
+        ↓
+
+🔴 HIGH CRIME RISK
+```
+
+---
+
+# 🧮 Safety Score System
+
+The system combines predictions from all three models.
+
+```text
+                🚦 Traffic Risk
+                      │
+                      ▼
+                    -15
+                      │
+                      ▼
+⚠️ Accident Risk ──→ SAFETY SCORE ←── 🔴 Crime Risk
+                      │
+                      ▼
+                     0–100
+```
+
+### Formula
+
+```text
+Safety Score =
+100
+- (Traffic Level × 15)
+- (Accident Severity × 10)
+- (Crime Probability × 30)
+```
+
+### Score Interpretation
+
+| Score           | Status  | Recommendation       |
+| --------------- | ------- | -------------------- |
+| 🟢 **70–100**   | Safe    | Safe to Travel       |
+| 🟡 **50–69**    | Caution | Travel Carefully     |
+| 🔴 **Below 50** | Avoid   | Consider Safer Route |
+
+---
+
+# 📡 API Endpoints
+
+| Method | Endpoint                | Description                        |
+| ------ | ----------------------- | ---------------------------------- |
+| `GET`  | `/`                     | API health check                   |
+| `GET`  | `/dashboard`            | Interactive dashboard              |
+| `POST` | `/api/predict/traffic`  | Predict traffic congestion         |
+| `POST` | `/api/predict/accident` | Predict accident severity          |
+| `POST` | `/api/predict/crime`    | Predict crime risk                 |
+| `POST` | `/api/predict/all`      | Combined prediction + Safety Score |
+| `POST` | `/api/route/safe`       | Find safest route                  |
+
+---
+
+# 🔄 Example API Request
+
+### Endpoint
+
+```text
+POST /api/predict/all
+```
+
+### Request
 
 ```json
 {
@@ -143,7 +293,8 @@ smart traffic project/
 }
 ```
 
-**Response:**
+### Response
+
 ```json
 {
   "location": "Pandri",
@@ -157,119 +308,244 @@ smart traffic project/
 
 ---
 
-## 🚀 How to Run
+# 🗺️ Safe Route Planning
 
-### 1. Clone / open the project folder
-```bash
-cd "E:\smart traffic project"
+The Safe Route Planner analyzes multiple locations and recommends a route with a better overall safety profile.
+
+```text
+📍 Start Location
+      │
+      ▼
+🚦 Analyze Traffic
+      │
+      ▼
+⚠️ Analyze Accident Risk
+      │
+      ▼
+🔴 Analyze Crime Risk
+      │
+      ▼
+🧮 Calculate Safety Score
+      │
+      ▼
+🗺️ Recommend Safer Route
+      │
+      ▼
+🏁 Destination
 ```
 
-### 2. Activate virtual environment
+---
+
+# 📍 Monitored Locations
+
+The project analyzes multiple areas across **Raipur, Chhattisgarh**.
+
+```text
+📍 Pandri
+📍 Shankar Nagar
+📍 Telibandha
+📍 Tikrapara
+📍 Amanaka
+📍 Fafadih
+📍 Devendra Nagar
+📍 Mowa
+📍 Katora Talab
+📍 GE Road
+📍 Jail Road
+📍 Ring Road No. 1
+```
+
+---
+
+# 📊 Dataset Information
+
+The datasets are synthetically generated using realistic patterns and location data for Raipur.
+
+| Dataset     | Records | Description                           |
+| ----------- | ------: | ------------------------------------- |
+| 🚦 Traffic  |   5,000 | Traffic conditions and congestion     |
+| ⚠️ Accident |   1,500 | Accident severity and road conditions |
+| 🔴 Crime    |   2,000 | Crime patterns and risk levels        |
+
+---
+
+# 📁 Project Structure
+
+```text
+smart-traffic-safety-system/
+│
+├── data/
+│   ├── raw/
+│   │   ├── traffic_data.csv
+│   │   ├── accident_data.csv
+│   │   └── crime_data.csv
+│   │
+│   └── processed/
+│       ├── traffic_clean.csv
+│       ├── accident_clean.csv
+│       └── crime_clean.csv
+│
+├── models/
+│   ├── traffic_model.pkl
+│   ├── accident_model.pkl
+│   └── crime_model.pkl
+│
+├── notebooks/
+│   ├── generate_data.py
+│   ├── clean_data.py
+│   └── train_models.py
+│
+├── backend/
+│   ├── app.py
+│   └── config.py
+│
+├── frontend/
+│   ├── templates/
+│   │   └── index.html
+│   │
+│   └── static/
+│
+├── requirements.txt
+│
+└── README.md
+```
+
+---
+
+# 🚀 Run Locally
+
+## 1️⃣ Clone the Repository
+
+```bash
+git clone https://github.com/avinash-j06/smart-traffic-safety-system.git
+```
+
+## 2️⃣ Open the Project
+
+```bash
+cd smart-traffic-safety-system
+```
+
+## 3️⃣ Create a Virtual Environment
+
+```bash
+python -m venv venv
+```
+
+### Windows
+
 ```powershell
 .\venv\Scripts\Activate.ps1
 ```
 
-### 3. Install dependencies
+### Linux / macOS
+
+```bash
+source venv/bin/activate
+```
+
+## 4️⃣ Install Dependencies
+
 ```bash
 pip install -r requirements.txt
 ```
 
-### 4. Generate datasets (first time only)
+## 5️⃣ Generate the Dataset
+
 ```bash
 python notebooks/generate_data.py
 ```
 
-### 5. Clean data (first time only)
+## 6️⃣ Clean and Process Data
+
 ```bash
 python notebooks/clean_data.py
 ```
 
-### 6. Train models (first time only)
+## 7️⃣ Train the Models
+
 ```bash
 python notebooks/train_models.py
 ```
 
-### 7. Start the Flask API
+## 8️⃣ Start the Application
+
 ```bash
 python backend/app.py
 ```
 
-### 8. Open the dashboard
-Open your browser and go to:
-```
+Open:
+
+```text
 http://127.0.0.1:5000/dashboard
 ```
 
 ---
 
-## 📊 Dataset Description
+# 🌐 Deployment
 
-All datasets are synthetically generated with realistic patterns for
-**Raipur, Chhattisgarh** using actual area coordinates.
+The project is deployed online using **Render**.
 
-### Monitored Locations (12 zones)
-Pandri · Shankar Nagar · Telibandha · Tikrapara · Amanaka · Fafadih ·
-Devendra Nagar · Mowa · Katora Talab · GE Road · Jail Road · Ring Road No 1
+### 🚀 Live Application
 
-### Traffic Dataset (5,000 records)
-- Columns: datetime, location, lat/lon, vehicle count, speed, weather,
-  congestion level, rush hour flags
-
-### Accident Dataset (1,500 records)
-- Columns: datetime, location, accident type, severity, road type,
-  weather, light condition, speed limit, casualties
-
-### Crime Dataset (2,000 records)
-- Columns: datetime, location, crime type, risk score, is_night,
-  is_weekend, status
+[🔗 Open Smart Traffic Safety System](https://smart-traffic-raipur.onrender.com)
 
 ---
 
-## 🔮 Safety Score Formula
+# 🔮 Future Improvements
 
-The overall safety score (0–100) for a location is calculated as:
-
-```
-Safety Score = 100 - (traffic_level × 15) - (accident_severity × 10) - (crime_probability × 30)
-```
-
-- Score ≥ 70 → ✅ Safe
-- Score 50–69 → ⚠️ Caution
-- Score < 50 → 🔴 Avoid
-
----
-
-## 📱 Dashboard Features
-
-- **Live Map** — OpenStreetMap with Raipur area markers
-- **Heatmap Layers** — Toggle between Traffic / Crime / Accident heatmaps
-- **Location Predictor** — Select any zone and get instant ML predictions
-- **Safe Route Planner** — Visual route drawn on map with colour-coded stops
-- **Hourly Risk Chart** — 24-hour traffic and crime risk profile
-- **Real-time Clock** — Live time display
+* 🤖 AI chatbot for travel safety assistance
+* 🎙️ Voice-based navigation
+* 📡 Integration with real-time traffic APIs
+* 🚨 Emergency alert system
+* 📱 Mobile application
+* 🛰️ IoT-based traffic monitoring
+* 📈 Continuous ML model retraining
+* 🚗 Personalized safe route recommendations
+* 🧠 Advanced Deep Learning models
 
 ---
 
-## 👨‍💻 Author
+# 👨‍💻 Project Team
 
-**Student Name:** *Avinash Jaiswal*
-**Student Name:** *Birju Ram Sahu*
-**College:** *GEC Raipur*
-**Branch:** *(Computer Science Engineering)*
-**Year:** *(Pre-Final Year — 2025–26)*
-**Guide:** *Mrs.Anjum Khan*
+| Name                | Role                           |
+| ------------------- | ------------------------------ |
+| **Avinash Jaiswal** | Development & Machine Learning |
+| **Birju Ram Sahu**  | Development & Research         |
 
----
+### 🏫 Academic Details
 
-## 📝 Acknowledgements
-
-- OpenStreetMap contributors for free map tiles
-- Leaflet.js for the open-source mapping library
-- NCRB (National Crime Records Bureau) for real-world data reference
-- scikit-learn, XGBoost teams for ML libraries
+* **College:** Government Engineering College, Raipur
+* **Branch:** Computer Science & Engineering
+* **Project Guide:** Mrs. Anjum Khan
 
 ---
 
-## 📄 License
+# 🙏 Acknowledgements
 
-This project is built for academic purposes.
+Special thanks to the open-source technologies and resources that supported this project:
+
+* 🗺️ OpenStreetMap contributors
+* 🗺️ Leaflet.js
+* 📊 Chart.js
+* 🧠 Scikit-learn
+* ⚡ XGBoost
+* 📚 NCRB for real-world crime data references
+
+---
+
+# 📄 License
+
+This project is developed for **academic and educational purposes**.
+
+---
+
+<p align="center">
+
+### ⭐ If you found this project interesting, consider giving it a star!
+
+**Made with ❤️ using Machine Learning, Python, and Web Technologies**
+
+[🚀 Try Live Demo](https://smart-traffic-raipur.onrender.com) • [💻 View Source Code](https://github.com/avinash-j06/smart-traffic-safety-system)
+
+</p>
